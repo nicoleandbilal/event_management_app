@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "macos"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "macos-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

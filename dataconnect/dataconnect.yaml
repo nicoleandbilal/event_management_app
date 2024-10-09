@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "event_management_app"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "event_management_app-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
