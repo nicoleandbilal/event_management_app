@@ -1,13 +1,42 @@
+// lib/screens/home/home_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:event_management_app/repositories/auth_repository.dart';
+import 'package:logger/logger.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final Logger _logger = Logger();
+
+  HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
-      body: const Center(child: Text('Event List Coming Soon')),
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              _logger.i('HomeScreen: Logout button pressed.');
+              try {
+                await context.read<AuthRepository>().signOut();
+                _logger.i('HomeScreen: User signed out successfully.');
+                // AuthBloc will automatically handle the unauthenticated state and navigate to LoginScreen
+              } catch (e) {
+                _logger.e('HomeScreen: Error signing out: $e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Error signing out. Please try again.')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      body: const Center(
+        child: Text('Welcome to the Home Screen!'),
+      ),
     );
   }
 }

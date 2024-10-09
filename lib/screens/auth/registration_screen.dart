@@ -102,7 +102,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         if (state is RegistrationSuccess) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => HomeScreen()),
           );
         } else if (state is RegistrationFailure) {
           ScaffoldMessenger.of(context).showSnackBar(

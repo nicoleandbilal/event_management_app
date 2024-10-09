@@ -8,7 +8,7 @@ import 'package:event_management_app/screens/event_detail/event_detail_screen.da
 
 class HomePage extends StatelessWidget {
   final List<Widget> _pages = [
-    const HomeScreen(),
+    HomeScreen(),
     const EventDetailScreen(),
     const ProfileScreen(),
   ];

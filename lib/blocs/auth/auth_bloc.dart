@@ -1,9 +1,11 @@
 // lib/blocs/auth/auth_bloc.dart
 
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:event_management_app/repositories/auth_repository.dart';
+import 'package:logger/logger.dart';
 
 // Events for AuthBloc
 abstract class AuthEvent extends Equatable {
@@ -14,10 +16,6 @@ abstract class AuthEvent extends Equatable {
 }
 
 class AppStarted extends AuthEvent {}
-
-class LoggedIn extends AuthEvent {}
-
-class LoggedOut extends AuthEvent {}
 
 // States for AuthBloc
 abstract class AuthState extends Equatable {
@@ -42,44 +40,52 @@ class Unauthenticated extends AuthState {}
 // Bloc Implementation
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
+  late final StreamSubscription<User?> _authSubscription;
+  final Logger _logger = Logger();
 
-  AuthBloc({AuthRepository? authRepository})
-      : _authRepository = authRepository ?? AuthRepository(),
+  AuthBloc({required AuthRepository authRepository})
+      : _authRepository = authRepository,
         super(AuthInitial()) {
     // Register event handlers
     on<AppStarted>(_onAppStarted);
-    on<LoggedIn>(_onLoggedIn);
-    on<LoggedOut>(_onLoggedOut);
 
-    // Listen to Firebase Auth State Changes
-    _authRepository.authStateChanges.listen((user) {
+    // Listen to Firebase Auth State Changes and emit states directly
+    _authSubscription = _authRepository.authStateChanges.listen((user) {
       if (user != null) {
-        add(LoggedIn());
+        if (state is! Authenticated) {
+          emit(Authenticated(user: user));
+          _logger.i(
+              'AuthBloc: User is authenticated. Emitting Authenticated state.');
+        }
       } else {
-        add(LoggedOut());
+        if (state is! Unauthenticated) {
+          emit(Unauthenticated());
+          _logger.i(
+              'AuthBloc: User is unauthenticated. Emitting Unauthenticated state.');
+        }
       }
     });
+
+    _logger.d('AuthBloc initialized and listening to auth state changes.');
   }
 
+  // Event Handler for AppStarted
   void _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
+    _logger.i('AuthBloc: AppStarted event received.');
     final currentUser = _authRepository.getCurrentUser();
-    if (currentUser != null) {
+    if (currentUser != null && state is! Authenticated) { // Prevent emitting duplicate states
       emit(Authenticated(user: currentUser));
-    } else {
+      _logger.i('AuthBloc: User is authenticated. Emitting Authenticated state.');
+    } else if (currentUser == null && state is! Unauthenticated) {
       emit(Unauthenticated());
+      _logger.i('AuthBloc: User is unauthenticated. Emitting Unauthenticated state.');
     }
   }
 
-  void _onLoggedIn(LoggedIn event, Emitter<AuthState> emit) {
-    final user = _authRepository.getCurrentUser();
-    if (user != null) {
-      emit(Authenticated(user: user));
-    } else {
-      emit(Unauthenticated());
-    }
-  }
-
-  void _onLoggedOut(LoggedOut event, Emitter<AuthState> emit) {
-    emit(Unauthenticated());
+  @override
+  Future<void> close() {
+    _authSubscription.cancel(); // Correctly cancel the subscription
+    _logger.d('AuthBloc: Stream subscription canceled.');
+    return super.close();
   }
 }

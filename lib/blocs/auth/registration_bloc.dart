@@ -1,7 +1,10 @@
+// lib/blocs/auth/registration_bloc.dart
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:event_management_app/repositories/auth_repository.dart';
+import 'package:logger/logger.dart'; // Import the logger package
 
 // Events for RegistrationBloc
 abstract class RegistrationEvent extends Equatable {
@@ -66,31 +69,69 @@ class RegistrationFailure extends RegistrationState {
 // Bloc Implementation
 class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   final AuthRepository _authRepository;
+  final Logger _logger = Logger(); // Initialize logger
 
   RegistrationBloc({required AuthRepository authRepository})
       : _authRepository = authRepository,
         super(RegistrationInitial()) {
     // Register event handlers
-    on<RegistrationEmailChanged>((event, emit) {
-      // Handle email changed event if needed
-    });
+    on<RegistrationEmailChanged>(_onRegistrationEmailChanged);
+    on<RegistrationPasswordChanged>(_onRegistrationPasswordChanged);
+    on<RegistrationSubmitted>(_onRegistrationSubmitted);
+  }
 
-    on<RegistrationPasswordChanged>((event, emit) {
-      // Handle password changed event if needed
-    });
+  void _onRegistrationEmailChanged(
+      RegistrationEmailChanged event, Emitter<RegistrationState> emit) {
+    _logger.d('RegistrationBloc: Email changed to ${event.email}');
+    // Optionally handle email changes for validation
+  }
 
-    on<RegistrationSubmitted>((event, emit) async {
-      emit(RegistrationLoading());
-      try {
-        final user = await _authRepository.registerWithEmail(event.email, event.password);
-        if (user != null) {
-          emit(RegistrationSuccess(user: user));
-        } else {
-          emit(const RegistrationFailure(error: 'Registration failed. Please try again.'));
-        }
-      } catch (error) {
-        emit(RegistrationFailure(error: error.toString()));
+  void _onRegistrationPasswordChanged(
+      RegistrationPasswordChanged event, Emitter<RegistrationState> emit) {
+    _logger.d('RegistrationBloc: Password changed');
+    // Optionally handle password changes for validation
+  }
+
+  void _onRegistrationSubmitted(
+      RegistrationSubmitted event, Emitter<RegistrationState> emit) async {
+    emit(RegistrationLoading());
+    _logger.i(
+        'RegistrationBloc: RegistrationSubmitted with email: ${event.email}');
+    try {
+      final user = await _authRepository.registerWithEmail(
+          event.email, event.password);
+      if (user != null) {
+        emit(RegistrationSuccess(user: user));
+        _logger.i(
+            'RegistrationBloc: RegistrationSuccess emitted for user: ${user.email}');
+        // AuthBloc will automatically handle the authenticated state change
+      } else {
+        emit(const RegistrationFailure(
+            error: 'Registration failed. Please try again.'));
+        _logger.e('RegistrationBloc: Registration failed without exception.');
       }
-    });
+    } catch (error) {
+      String errorMessage = _mapErrorToMessage(error);
+      emit(RegistrationFailure(error: errorMessage));
+      _logger.e(
+          'RegistrationBloc: RegistrationFailure emitted with error: $errorMessage');
+    }
+  }
+
+  String _mapErrorToMessage(dynamic error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'invalid-email':
+          return 'The email address is not valid.';
+        case 'email-already-in-use':
+          return 'The email address is already in use.';
+        case 'weak-password':
+          return 'The password is too weak.';
+        default:
+          return 'Registration failed. Please try again.';
+      }
+    } else {
+      return 'An unknown error occurred.';
+    }
   }
 }

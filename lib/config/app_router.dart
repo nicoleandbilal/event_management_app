@@ -9,11 +9,11 @@ class AppRouter {
       case '/login':
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case '/home':
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) =>  HomeScreen());
       case '/event_detail':
-        return MaterialPageRoute(builder: (_) => const EventDetailScreen());
+        return MaterialPageRoute(builder: (_) =>  const EventDetailScreen());
       case '/profile':
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) =>  HomeScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
