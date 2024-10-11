@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "62452874262",
+    "project_id": "eventmanagementapp-9cc0b",
+    "storage_bucket": "eventmanagementapp-9cc0b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:62452874262:android:ff94179955753514bd0937",
+        "android_client_info": {
+          "package_name": "com.toma.organizer.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdKHr_43DE7_mUnVLFUZjuaORIWTZfBt4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
