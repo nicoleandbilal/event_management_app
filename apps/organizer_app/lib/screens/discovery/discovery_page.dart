@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class EventDetailScreen extends StatelessWidget {
-  const EventDetailScreen({super.key});
+class DiscoveryScreen extends StatelessWidget {
+  const DiscoveryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -10,7 +10,7 @@ import 'package:shared/blocs/navigation/navigation_bloc.dart';
 class HomePage extends StatelessWidget {
   final List<Widget> _pages = [
     HomeScreen(),
-    const EventDetailScreen(),
+    const DiscoveryScreen(),
     const ProfileScreen(),
   ];
 

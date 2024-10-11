@@ -45,6 +45,7 @@ dependencies:
   # Path dependency to shared folder
   shared:
     path: /Users/nicoledlp/develop/event_management_app/apps/shared
+  go_router: ^14.3.0
 
 dev_dependencies:
   flutter_test:
