@@ -26,7 +26,7 @@ class LoginScreenState extends State<LoginScreen> {
         authBloc: context.read<AuthBloc>(),  // Pass AuthBloc to LoginBloc
       ),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Login')),
+        appBar: AppBar(title: const Text('Login (Organizer)')),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(

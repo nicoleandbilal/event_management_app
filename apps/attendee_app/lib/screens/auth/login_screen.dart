@@ -10,10 +10,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
         authBloc: context.read<AuthBloc>(),  // Pass AuthBloc to LoginBloc
       ),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Login')),
+        appBar: AppBar(title: const Text('Login (Attendee)')),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
