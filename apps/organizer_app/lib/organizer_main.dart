@@ -37,6 +37,7 @@ class EventManagementApp extends StatelessWidget {
             _logger.d('Main AuthBloc state changed to: $state');
             return MaterialApp.router(
               title: 'Event Management App',
+              debugShowCheckedModeBanner: false, // Set this to false
               theme: AppTheme.lightTheme,
               routerConfig: createGoRouter(context, state),
             );

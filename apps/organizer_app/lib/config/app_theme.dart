@@ -7,7 +7,7 @@ class AppTheme {
       color: Colors.blueAccent,
       iconTheme: IconThemeData(color: Colors.white),
       titleTextStyle: TextStyle(
-        color: Colors.white,
+        color: Colors.black,
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),

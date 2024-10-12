@@ -5,7 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
 
-// Events for AuthBloc
+// --- EVENTS ---
+
+// Auth events should not be defined in the same file as the bloc logic.
+// Typically, events are placed in a separate file such as `auth_event.dart`.
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
 
@@ -17,9 +20,9 @@ class AppStarted extends AuthEvent {}
 
 class LoggedIn extends AuthEvent {}
 
-class LoggedOut extends AuthEvent {}
+class LoggedOut extends AuthEvent {} // Ensure this is the only place this event is defined
 
-// States for AuthBloc
+// --- STATES ---
 abstract class AuthState extends Equatable {
   const AuthState();
 
@@ -39,17 +42,18 @@ class Authenticated extends AuthState {
 
 class Unauthenticated extends AuthState {}
 
-// Bloc Implementation
+// --- BLOC IMPLEMENTATION ---
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
   late final StreamSubscription<User?> _authSubscription;
   final Logger _logger = Logger();
 
+  // Constructor
   AuthBloc({required AuthRepository authRepository})
       : _authRepository = authRepository,
         super(AuthInitial()) {
-
-    // Register event handlers
+    
+    // Registering event handlers for the three events
     on<AppStarted>(_onAppStarted);
     on<LoggedIn>(_onLoggedIn);
     on<LoggedOut>(_onLoggedOut);
@@ -57,10 +61,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // Listen to Firebase Auth State Changes and emit states directly
     _authSubscription = _authRepository.authStateChanges.listen((user) {
       if (user != null) {
-        emit(Authenticated(user: user));
+        (Authenticated(user: user));
         _logger.i('AuthBloc: User authenticated: ${user.email}');
       } else {
-        emit(Unauthenticated());
+        (Unauthenticated());
         _logger.i('AuthBloc: User unauthenticated.');
       }
     });
@@ -68,7 +72,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _logger.d('AuthBloc initialized and listening to auth state changes.');
   }
 
-  // Event Handler for AppStarted
+  // --- EVENT HANDLERS ---
+
+  // Handler for AppStarted event (fired when the app starts)
   void _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     _logger.i('AuthBloc: AppStarted event received.');
     final currentUser = _authRepository.getCurrentUser();
@@ -81,7 +87,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  // Event Handler for LoggedIn (after login or registration)
+  // Handler for LoggedIn event (fired after successful login)
   void _onLoggedIn(LoggedIn event, Emitter<AuthState> emit) async {
     final currentUser = _authRepository.getCurrentUser();
     if (currentUser != null) {
@@ -90,7 +96,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  // Event Handler for LoggedOut
+  // Handler for LoggedOut event (fired when the user logs out)
   void _onLoggedOut(LoggedOut event, Emitter<AuthState> emit) async {
     await _authRepository.signOut();
     emit(Unauthenticated());
@@ -99,7 +105,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   @override
   Future<void> close() {
-    _authSubscription.cancel(); // Correctly cancel the subscription
+    _authSubscription.cancel(); // Cancel the subscription to avoid memory leaks
     _logger.d('AuthBloc: Stream subscription canceled.');
     return super.close();
   }
