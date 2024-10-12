@@ -18,7 +18,7 @@ List<GoRoute> homeRoutes = [
   ),
   GoRoute(
     path: '/search',
-    pageBuilder: (context, state) => const NoTransitionPage(
+    pageBuilder: (context, state) => NoTransitionPage(
       child: SearchScreen(), // Wrap in MainScreen
     ),
   ),

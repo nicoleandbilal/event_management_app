@@ -6,9 +6,6 @@ import '../../repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
 
 // --- EVENTS ---
-
-// Auth events should not be defined in the same file as the bloc logic.
-// Typically, events are placed in a separate file such as `auth_event.dart`.
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
 
@@ -20,7 +17,7 @@ class AppStarted extends AuthEvent {}
 
 class LoggedIn extends AuthEvent {}
 
-class LoggedOut extends AuthEvent {} // Ensure this is the only place this event is defined
+class LoggedOut extends AuthEvent {}
 
 // --- STATES ---
 abstract class AuthState extends Equatable {
@@ -48,7 +45,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   late final StreamSubscription<User?> _authSubscription;
   final Logger _logger = Logger();
 
-  // Constructor
   AuthBloc({required AuthRepository authRepository})
       : _authRepository = authRepository,
         super(AuthInitial()) {
@@ -61,10 +57,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // Listen to Firebase Auth State Changes and emit states directly
     _authSubscription = _authRepository.authStateChanges.listen((user) {
       if (user != null) {
-        (Authenticated(user: user));
+        add(LoggedIn()); // Emit LoggedIn event when authenticated
         _logger.i('AuthBloc: User authenticated: ${user.email}');
       } else {
-        (Unauthenticated());
+        add(LoggedOut()); // Emit LoggedOut event when not authenticated
         _logger.i('AuthBloc: User unauthenticated.');
       }
     });

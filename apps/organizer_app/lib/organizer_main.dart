@@ -1,13 +1,16 @@
 // lib/organizer_main.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';
 import 'package:organizer_app/config/app_theme.dart';
 import 'package:shared/blocs/auth/auth_bloc.dart';
+import 'package:shared/blocs/search/search_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
+import 'package:shared/repositories/search_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +33,13 @@ class EventManagementApp extends StatelessWidget {
             create: (context) => AuthBloc(
               authRepository: context.read<AuthRepository>(),
             )..add(AppStarted()),
+          ),
+          BlocProvider<SearchBloc>(
+            create: (context) => SearchBloc(
+              searchRepository: SearchRepository(
+                firestore: FirebaseFirestore.instance,
+              ),
+            ),
           ),
         ],
         child: BlocBuilder<AuthBloc, AuthState>(
