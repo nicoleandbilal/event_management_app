@@ -12,7 +12,7 @@ class SearchRepository {
     final snapshot = await firestore
         .collection('events') // Your Firestore collection name
         .where('name', isGreaterThanOrEqualTo: query)
-        .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+        .where('name', isLessThanOrEqualTo: '$query\uf8ff')
         .get();
 
     // Mapping Firestore documents to Event model instances

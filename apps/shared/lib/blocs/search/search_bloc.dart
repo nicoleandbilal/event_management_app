@@ -1,10 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:shared/repositories/search_repository.dart'; 
 import 'package:shared/blocs/search/search_state.dart'; 
 import 'package:shared/blocs/search/search_event.dart'; 
-import 'package:shared/models/event_model.dart'; 
-
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final SearchRepository searchRepository;
@@ -28,12 +25,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     try {
       final results = await searchRepository.searchEvents(query); // Fetch results
       if (results.isEmpty) {
-        emit(SearchError('No events found'));
+        emit(const SearchError('No events found'));
       } else {
         emit(SearchLoaded(results));
       }
     } catch (error) {
-      emit(SearchError('Failed to fetch search results'));
+      emit(const SearchError('Failed to fetch search results'));
     }
   }
 }

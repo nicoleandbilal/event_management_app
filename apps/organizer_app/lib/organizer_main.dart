@@ -1,12 +1,10 @@
-// lib/organizer_main.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';
 import 'package:organizer_app/config/app_theme.dart';
-import 'package:shared/blocs/auth/auth_bloc.dart';
+import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
 import 'package:shared/blocs/search/search_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:logger/logger.dart';

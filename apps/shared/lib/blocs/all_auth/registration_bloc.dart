@@ -3,7 +3,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../repositories/auth_repository.dart';
+import '../../../repositories/auth_repository.dart';
 import 'package:logger/logger.dart'; // Import the logger package
 
 // Events for RegistrationBloc

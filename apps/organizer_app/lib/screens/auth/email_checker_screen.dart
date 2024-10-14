@@ -1,56 +1,32 @@
+// email_checker_screen.dart
+
+/*
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/blocs/all_auth/auth/auth_bloc.dart'; // Import AuthBloc
+import 'package:shared/blocs/all_auth/email_checker/email_checker_bloc.dart';
+import 'package:shared/blocs/all_auth/email_checker/email_checker_event.dart';
+import 'package:shared/blocs/all_auth/email_checker/email_checker_state.dart';
 import 'package:shared/repositories/auth_repository.dart';
-import 'package:shared/blocs/all_auth/login/login_bloc.dart';
+import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
 
-class LoginScreen extends StatefulWidget {
-  final String? email;  // Accept email as an optional parameter to pre-fill the email field
-
-  const LoginScreen({super.key, this.email});
+class CheckerScreen extends StatefulWidget {
+  const CheckerScreen({super.key});
 
   @override
-  LoginScreenState createState() => LoginScreenState();
+  CheckerScreenState createState() => CheckerScreenState();
 }
 
-class LoginScreenState extends State<LoginScreen> {
+class CheckerScreenState extends State<CheckerScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isEmailPreFilled = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // If the email is passed from the CheckerScreen, pre-fill the email field
-    if (widget.email != null && widget.email!.isNotEmpty) {
-      _emailController.text = widget.email!;
-      _isEmailPreFilled = true;
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    
-    // Retrieve the recognized email from AuthBloc if passed via AuthBloc state
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthEmailRecognized && authState.email.isNotEmpty && !_isEmailPreFilled) {
-      _emailController.text = authState.email;
-      setState(() {
-        _isEmailPreFilled = true; // Mark the email as pre-filled
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginBloc(
+      create: (context) => EmailCheckerBloc(
         authRepository: context.read<AuthRepository>(),
-        authBloc: context.read<AuthBloc>(),
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -87,14 +63,12 @@ class LoginScreenState extends State<LoginScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const SizedBox(height: 16),
-                            _welcomeBackText(),
-                            _welcomeBackSubText(),
+                            _welcomeOptionsText(),
+                            _welcomeOptionsSubText(),
                             const SizedBox(height: 16),
-                            _emailField(),  // Email field with updated styling
+                            _emailField(),
                             const SizedBox(height: 16),
-                            _passwordField(),
-                            const SizedBox(height: 16),
-                            _loginButton(),
+                            _nextButton(), // Updated logic for email checking
                           ],
                         ),
                       ),
@@ -115,12 +89,81 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Welcome back text
-  Widget _welcomeBackText() {
+  // Button that triggers email checking logic and navigates
+  Widget _nextButton() {
+    return BlocConsumer<EmailCheckerBloc, EmailCheckerState>(
+      listener: (context, state) {
+        if (state is EmailCheckSuccess) {
+          final email = _emailController.text.trim(); // Get the email from the form
+          context.read<AuthBloc>().add(EmailRecognized(email: email)); // Dispatch email to AuthBloc
+
+          // Navigation based on whether the email is registered
+          if (state.isRegistered) {
+            print('CheckerScreen: User is registered, navigating to login with email: $email');
+            context.go('/login', extra: email);  // Pass email to LoginScreen
+          } else {
+            print('CheckerScreen: User is not registered, navigating to register with email: $email');
+            context.go('/register', extra: email);  // Pass email to RegistrationScreen
+          }
+        } else if (state is EmailCheckFailure) {
+          print('CheckerScreen: Error: ${state.error}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error)),
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is EmailCheckLoading) {
+          return const CircularProgressIndicator(); // Show loading indicator
+        }
+
+        return ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(3.0),
+            ),
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.red,
+            minimumSize: const Size(double.infinity, 40),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final email = _emailController.text.trim();
+              print('CheckerScreen: Checking if email is registered: $email');
+              context.read<EmailCheckerBloc>().add(CheckEmailEvent(email));  // Trigger the event here
+            }
+          },
+          child: const Text('Next'),
+        );
+      },
+    );
+  }
+
+  // Display any login errors or email check failures
+  Widget _loginError() {
+    return BlocBuilder<EmailCheckerBloc, EmailCheckerState>(
+      builder: (context, state) {
+        if (state is EmailCheckFailure) {
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              state.error,
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _welcomeOptionsText() {
     return const Padding(
       padding: EdgeInsets.only(top: 8.0),
       child: Text(
-        'Welcome back',
+        'Sign up or Log in',
         style: TextStyle(
           fontSize: 24.0,
           fontWeight: FontWeight.normal,
@@ -130,12 +173,11 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Welcome back subtext
-  Widget _welcomeBackSubText() {
+  Widget _welcomeOptionsSubText() {
     return const Padding(
       padding: EdgeInsets.all(14.0),
       child: Text(
-        'Enter your email to continue',
+        'Enter email to continue',
         style: TextStyle(
           fontSize: 14.0,
           color: Colors.grey,
@@ -145,13 +187,11 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Email input field
   Widget _emailField() {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(3.0),
-        border: Border.all(color: _isEmailPreFilled ? Colors.green : Colors.grey), // Change color if pre-filled
-        color: _isEmailPreFilled ? Colors.green.withOpacity(0.2) : Colors.transparent, // Light green background if pre-filled
+        border: Border.all(color: Colors.grey),
       ),
       padding: const EdgeInsets.fromLTRB(6, 4, 12, 0),
       child: Column(
@@ -185,81 +225,6 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Password input field
-  Widget _passwordField() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(3.0),
-        border: Border.all(color: Colors.grey),
-      ),
-      padding: const EdgeInsets.fromLTRB(6, 4, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Password',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
-          TextFormField(
-            controller: _passwordController,
-            obscureText: true,
-            style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Login button
-  Widget _loginButton() {
-    return BlocBuilder<LoginBloc, LoginState>(
-      builder: (context, state) {
-        if (state is LoginLoading) {
-          return const CircularProgressIndicator();
-        }
-
-        return ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(3.0),
-            ),
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.red,
-            minimumSize: const Size(double.infinity, 40),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-          ),
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              context.read<LoginBloc>().add(
-                    LoginSubmitted(
-                      _emailController.text.trim(),
-                      _passwordController.text.trim(),
-                    ),
-                  );
-            }
-          },
-          child: const Text('Get Started'),
-        );
-      },
-    );
-  }
-
-  // "or" divider
   Widget _orDivider() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 10),
@@ -279,7 +244,6 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Facebook login button
   Widget _facebookLoginButton() {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
@@ -300,7 +264,6 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Register navigation button
   Widget _navigateToRegister() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -315,22 +278,6 @@ class LoginScreenState extends State<LoginScreen> {
       ],
     );
   }
-
-  // Login error widget
-  Widget _loginError() {
-    return BlocBuilder<LoginBloc, LoginState>(
-      builder: (context, state) {
-        if (state is LoginFailure) {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              state.error,
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
 }
+
+*/

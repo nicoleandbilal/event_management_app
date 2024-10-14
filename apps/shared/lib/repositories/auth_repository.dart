@@ -8,7 +8,7 @@ class AuthRepository {
   AuthRepository({FirebaseAuth? firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
-  // Sign In using Email and Password
+  // Sign in using Email and Password
   Future<User?> signInWithEmail(String email, String password) async {
     try {
       _logger.i('AuthRepository: Attempting to sign in with email: $email');
@@ -24,16 +24,16 @@ class AuthRepository {
         case 'invalid-email':
           throw Exception('The email address is not valid.');
         case 'user-disabled':
-          throw Exception('This user has been disabled.');
+          throw Exception('This user account has been disabled.');
         case 'user-not-found':
           throw Exception('No user found for that email.');
         case 'wrong-password':
-          throw Exception('Wrong password provided.');
+          throw Exception('Incorrect password provided.');
         default:
           throw Exception('Authentication failed. Please try again.');
       }
     } catch (e) {
-      _logger.e('AuthRepository: Unknown error: $e');
+      _logger.e('AuthRepository: Unknown error during sign-in: $e');
       throw Exception('Login failed. Please try again.');
     }
   }
@@ -52,39 +52,49 @@ class AuthRepository {
       _logger.e('AuthRepository: FirebaseAuthException: ${e.code} - ${e.message}');
       switch (e.code) {
         case 'email-already-in-use':
-          throw Exception('The email is already in use.');
+          throw Exception('The email is already in use. Please log in instead.');
         case 'invalid-email':
           throw Exception('The email address is not valid.');
         case 'operation-not-allowed':
-          throw Exception('Operation not allowed.');
+          throw Exception('This operation is not allowed.');
         case 'weak-password':
-          throw Exception('The password is too weak.');
+          throw Exception('The password provided is too weak.');
         default:
           throw Exception('Registration failed. Please try again.');
       }
     } catch (e) {
-      _logger.e('AuthRepository: Unknown error: $e');
+      _logger.e('AuthRepository: Unknown error during registration: $e');
       throw Exception('Registration failed. Please try again.');
     }
   }
 
-  // Sign Out
+  // Sign out the user
   Future<void> signOut() async {
-    try {
-      _logger.i('AuthRepository: Signing out user.');
-      await _firebaseAuth.signOut();
-      _logger.i('AuthRepository: Sign out successful.');
-    } catch (e) {
-      _logger.e('AuthRepository: Error signing out: $e');
-      throw Exception('Sign out failed. Please try again.');
-    }
+    await _firebaseAuth.signOut();
+    _logger.i('AuthRepository: Sign out successful.');
   }
 
-  // Get Current User
+  // Get the current authenticated user
   User? getCurrentUser() {
     return _firebaseAuth.currentUser;
   }
 
-  // Stream of Auth State Changes
+  // Stream of authentication state changes
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+
+  // Centralized error handling (for reusable handling)
+  void _handleFirebaseAuthException(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        throw Exception('The email address is not valid.');
+      case 'user-disabled':
+        throw Exception('This user account has been disabled.');
+      case 'user-not-found':
+        throw Exception('No user found for that email.');
+      case 'wrong-password':
+        throw Exception('Incorrect password.');
+      default:
+        throw Exception('Authentication failed.');
+    }
+  }
 }

@@ -1,9 +1,9 @@
+import 'package:attendee_app/utils/custom_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:attendee_app/utils/custom_bottom_nav_bar.dart';
 import 'package:logger/logger.dart';
-import 'package:shared/blocs/auth/auth_bloc.dart';
+import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
 
 class MainScreen extends StatefulWidget {
   final Widget child;

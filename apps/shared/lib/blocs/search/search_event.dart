@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:shared/blocs/search/search_bloc.dart';  // Link to the main file
+
 
 abstract class SearchEvent extends Equatable {
   const SearchEvent();
