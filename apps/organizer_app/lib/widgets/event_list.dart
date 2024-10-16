@@ -1,9 +1,7 @@
-// lib/widgets/event_list.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';  // Import GoRouter
 import 'package:organizer_app/widgets/event_list_item.dart';
-import 'package:organizer_app/screens/events/event_details_screen.dart';
 
 class EventList extends StatelessWidget {
   const EventList({super.key});
@@ -37,15 +35,20 @@ class EventList extends StatelessWidget {
           itemCount: events.length,
           itemBuilder: (context, index) {
             final eventData = events[index].data() as Map<String, dynamic>;
+
+            // Convert Firestore Timestamp to DateTime
+            final Timestamp? startDateTimeTimestamp = eventData['startDateTime'] as Timestamp?;
+            final DateTime? startDateTime = startDateTimeTimestamp?.toDate();
+
             return EventListItem(
               name: eventData['name'] ?? 'No Name',
-              description: eventData['description'] ?? 'No Description',
+              startDateTime: startDateTime ?? DateTime.now(), // Fallback to current date if null
+              venue: eventData['venue'] ?? 'No Venue',
+              imageUrl: eventData['imageUrl'] ?? '',
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EventDetailsScreen(eventId: events[index].id),
-                  ),
+                // Use GoRouter to navigate to the event details screen
+                context.push(
+                  '/event_details/${events[index].id}', // Assuming you have a route like '/event-details/:id'
                 );
               },
             );

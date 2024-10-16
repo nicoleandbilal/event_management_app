@@ -1,36 +1,45 @@
+// create_event_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:organizer_app/blocs/create_event/create_event_form_bloc.dart';
+import 'package:organizer_app/blocs/create_event/create_event_form_state.dart';
 import 'package:organizer_app/widgets/create_event_form.dart';
 import 'package:organizer_app/repositories/create_event_repository.dart';
 
-class CreateEventScreen extends StatelessWidget {
+class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
 
   @override
+  _CreateEventScreenState createState() => _CreateEventScreenState();
+}
+
+class _CreateEventScreenState extends State<CreateEventScreen> {
+  @override
   Widget build(BuildContext context) {
-    // Access the repository through GoRouter's extra or directly if passed down
-    final createEventRepository = context.read<CreateEventRepository>();
+    // Ensure that CreateEventRepository is provided in the context
+    final createEventRepository = RepositoryProvider.of<CreateEventRepository>(context);
 
     return BlocProvider(
       create: (context) => CreateEventFormBloc(createEventRepository),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Create Event'),
-        ),
-        body: BlocListener<CreateEventFormBloc, CreateEventFormState>(
-          listener: (context, state) {
-            if (state is CreateEventFormSuccess) {
-              Navigator.of(context).pop(); // Navigate back after success
-            } else if (state is CreateEventFormFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error)),
-              );
-            }
-          },
-          child: const Padding(
+      child: BlocListener<CreateEventFormBloc, CreateEventFormState>(
+        listener: (context, state) {
+          if (state is CreateEventFormSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Event created successfully!')),
+          );
+          
+          // Instead of popping, navigate to a specific screen, such as home or event list
+          context.go('/favorites');  // Assuming '/home' is the route to your main/home screen
+}
+        },
+        child: Scaffold(
+          appBar: AppBar(
+          ),
+          body: const SingleChildScrollView(
             padding: EdgeInsets.all(20.0),
-            child: CreateEventForm(), // The form where user fills out event details
+            child: CreateEventForm(), // The form widget for creating an event
           ),
         ),
       ),

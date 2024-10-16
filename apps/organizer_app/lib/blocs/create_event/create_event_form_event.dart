@@ -1,7 +1,8 @@
+// create_event_form_event.dart
+
 import 'package:equatable/equatable.dart';
 import 'package:organizer_app/models/create_event_model.dart';
 
-// Define abstract base class for all events
 abstract class CreateEventFormEvent extends Equatable {
   const CreateEventFormEvent();
 
@@ -9,9 +10,8 @@ abstract class CreateEventFormEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// Event for submitting the event form
 class SubmitCreateEventForm extends CreateEventFormEvent {
-  final CreateEvent event;  // Pass the event data that needs to be submitted
+  final CreateEvent event;
 
   const SubmitCreateEventForm(this.event);
 
@@ -19,7 +19,6 @@ class SubmitCreateEventForm extends CreateEventFormEvent {
   List<Object?> get props => [event];
 }
 
-// Event for updating the event name
 class UpdateCreateEventName extends CreateEventFormEvent {
   final String eventName;
 
@@ -29,7 +28,6 @@ class UpdateCreateEventName extends CreateEventFormEvent {
   List<Object?> get props => [eventName];
 }
 
-// Event for updating the event description
 class UpdateCreateEventDescription extends CreateEventFormEvent {
   final String description;
 
@@ -39,7 +37,6 @@ class UpdateCreateEventDescription extends CreateEventFormEvent {
   List<Object?> get props => [description];
 }
 
-// Event for updating the event's start date and time
 class UpdateCreateEventStartDateTime extends CreateEventFormEvent {
   final DateTime startDateTime;
 
@@ -49,7 +46,6 @@ class UpdateCreateEventStartDateTime extends CreateEventFormEvent {
   List<Object?> get props => [startDateTime];
 }
 
-// Event for updating the event's end date and time
 class UpdateCreateEventEndDateTime extends CreateEventFormEvent {
   final DateTime endDateTime;
 
@@ -59,7 +55,6 @@ class UpdateCreateEventEndDateTime extends CreateEventFormEvent {
   List<Object?> get props => [endDateTime];
 }
 
-// Event for updating the event image URL
 class UpdateCreateEventImageUrl extends CreateEventFormEvent {
   final String imageUrl;
 

@@ -1,4 +1,5 @@
-// lib/features/create_event/domain/entities/event.dart
+// lib/entities/event.dart
+
 import 'package:equatable/equatable.dart';
 
 class Event extends Equatable {
@@ -7,6 +8,8 @@ class Event extends Equatable {
   final String imageUrl;
   final DateTime startDateTime;
   final DateTime endDateTime;
+  final String category;
+  final String venue;
 
   const Event({
     required this.name,
@@ -14,8 +17,10 @@ class Event extends Equatable {
     required this.imageUrl,
     required this.startDateTime,
     required this.endDateTime,
+    required this.category,
+    required this.venue,
   });
 
   @override
-  List<Object> get props => [name, description, imageUrl, startDateTime, endDateTime];
+  List<Object> get props => [name, description, imageUrl, startDateTime, endDateTime, category, venue];
 }

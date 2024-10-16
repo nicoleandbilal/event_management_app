@@ -1,4 +1,4 @@
-// lib/screens/event_detail_screen.dart
+// event_details_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

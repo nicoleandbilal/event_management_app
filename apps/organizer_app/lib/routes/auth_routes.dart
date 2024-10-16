@@ -1,4 +1,5 @@
 // lib/routes/auth_routes.dart
+
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/screens/auth/registration_screen.dart';
 import 'package:organizer_app/screens/auth/login_screen.dart';

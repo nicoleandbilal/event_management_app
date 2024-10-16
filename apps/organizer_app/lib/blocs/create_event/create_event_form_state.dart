@@ -1,3 +1,5 @@
+// create_event_form_state.dart
+
 import 'package:equatable/equatable.dart';
 
 abstract class CreateEventFormState extends Equatable {
