@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/routes/auth_routes.dart';
 import 'package:organizer_app/routes/home_routes.dart';
+import 'package:organizer_app/screens/events/create_event_screen.dart';
 import 'package:organizer_app/screens/main_screen.dart';
 import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
 
@@ -32,6 +33,11 @@ GoRouter createGoRouter(BuildContext context, AuthState authState) {
           return MainScreen(child: child);  // Wrap home-related routes in MainScreen
         },
         routes: homeRoutes,  // All home-related routes are defined in homeRoutes
+      ),
+      // Add full-screen routes here (outside the ShellRoute)
+      GoRoute(
+        path: '/create_event',
+        builder: (context, state) => const CreateEventScreen(), // Full-screen page
       ),
     ],
     errorBuilder: (context, state) => const Scaffold(
