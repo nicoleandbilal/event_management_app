@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:shared/repositories/search_repository.dart'; 
-import 'package:shared/blocs/search/search_state.dart'; 
-import 'package:shared/blocs/search/search_event.dart'; 
+import 'package:shared/search/search_repository.dart'; 
+import 'package:shared/search/bloc/search_state.dart'; 
+import 'package:shared/search/bloc/search_event.dart'; 
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final SearchRepository searchRepository;

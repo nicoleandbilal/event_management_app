@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EventListItem extends StatelessWidget {
-  final String name;
+  final String eventName;
   final DateTime startDateTime;
   final String venue;
   final String imageUrl; // Example for a more complex layout
@@ -12,7 +12,7 @@ class EventListItem extends StatelessWidget {
 
   const EventListItem({
     super.key,
-    required this.name,
+    required this.eventName,
     required this.startDateTime,
     required this.venue,
     required this.imageUrl,
@@ -44,7 +44,7 @@ class EventListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: Theme.of(context).textTheme.titleLarge), // Title
+                    Text(eventName, style: Theme.of(context).textTheme.titleLarge), // Title
                     const SizedBox(height: 4),
                     Text(formattedDate), // Date
                     const SizedBox(height: 4),

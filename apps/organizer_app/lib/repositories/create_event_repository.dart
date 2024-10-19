@@ -1,14 +1,14 @@
 // lib/repositories/create_event_repository.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:organizer_app/models/create_event_model.dart';
+import 'package:shared/models/event_model.dart';
 
 class CreateEventRepository {
   final FirebaseFirestore firestore;
 
   CreateEventRepository({required this.firestore});
 
-  Future<void> submitEvent(CreateEvent event) async {
+  Future<void> submitEvent(Event event) async {
   try {
     await firestore.collection('events').add({
       'eventName': event.eventName,

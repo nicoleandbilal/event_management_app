@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:organizer_app/widgets/input_box.dart';
+import 'package:shared/widgets/input_box.dart';
 
 class CreateEventDatePicker extends StatelessWidget {
   final String label;

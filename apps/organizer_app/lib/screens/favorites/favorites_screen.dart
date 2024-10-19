@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/widgets/create_event_button.dart';
-import 'package:organizer_app/widgets/event_list.dart';
+import 'package:shared/widgets/event_list.dart';
 import 'package:organizer_app/repositories/create_event_repository.dart';
 
 class FavoritesScreen extends StatelessWidget {

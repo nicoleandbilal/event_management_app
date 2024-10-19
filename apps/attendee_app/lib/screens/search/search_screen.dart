@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared/blocs/search/search_bloc.dart';
-import 'package:shared/blocs/search/search_event.dart';
-import 'package:shared/blocs/search/search_state.dart';
-import 'package:shared/repositories/search_repository.dart';
+import 'package:shared/search/search_repository.dart';
+import 'package:shared/search/bloc/search_bloc.dart';
+import 'package:shared/search/bloc/search_event.dart';
+import 'package:shared/search/bloc/search_state.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -50,8 +50,7 @@ class SearchScreen extends StatelessWidget {
                         final event = state.results[index];
                         return ListTile(
                           leading: const Icon(Icons.event),
-                          title: Text(event.name),
-                          subtitle: Text(event.details),
+                          title: Text(event.eventName),
                           onTap: () {
                             // Handle event tap if necessary
                           },

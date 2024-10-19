@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';  // Import GoRouter
-import 'package:organizer_app/widgets/event_list_item.dart';
+import 'package:shared/widgets/event_list_item.dart';
 
 class EventList extends StatelessWidget {
   const EventList({super.key});
@@ -41,7 +41,7 @@ class EventList extends StatelessWidget {
             final DateTime? startDateTime = startDateTimeTimestamp?.toDate();
 
             return EventListItem(
-              name: eventData['name'] ?? 'No Name',
+              eventName: eventData['eventName'] ?? 'No Name',
               startDateTime: startDateTime ?? DateTime.now(), // Fallback to current date if null
               venue: eventData['venue'] ?? 'No Venue',
               imageUrl: eventData['imageUrl'] ?? '',

@@ -1,7 +1,7 @@
 // create_event_form_event.dart
 
 import 'package:equatable/equatable.dart';
-import 'package:organizer_app/models/create_event_model.dart';
+import 'package:shared/models/event_model.dart';
 
 abstract class CreateEventFormEvent extends Equatable {
   const CreateEventFormEvent();
@@ -11,7 +11,7 @@ abstract class CreateEventFormEvent extends Equatable {
 }
 
 class SubmitCreateEventForm extends CreateEventFormEvent {
-  final CreateEvent event;
+  final Event event;
 
   const SubmitCreateEventForm(this.event);
 
