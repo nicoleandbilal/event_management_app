@@ -120,7 +120,7 @@ class LoginScreenState extends State<LoginScreen> {
     return const Padding(
       padding: EdgeInsets.only(top: 8.0),
       child: Text(
-        'Welcome back',
+        'Welcome back, Guest.',
         style: TextStyle(
           fontSize: 24.0,
           fontWeight: FontWeight.normal,

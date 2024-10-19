@@ -411,8 +411,8 @@ packages:
   shared:
     dependency: "direct main"
     description:
-      path: "../shared"
-      relative: true
+      path: "/Users/nicoledlp/develop/event_management_app/shared/shared_ui"
+      relative: false
     source: path
     version: "1.0.0+1"
   sky_engine:

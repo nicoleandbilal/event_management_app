@@ -44,7 +44,7 @@ dependencies:
   logger: ^2.4.0
   # Path dependency to shared folder
   shared:
-    path: /Users/nicoledlp/develop/event_management_app/apps/shared
+    path: /Users/nicoledlp/develop/event_management_app/shared/shared_ui
   go_router: ^14.3.0
   cloud_firestore: ^5.4.4
   google_fonts: ^6.2.1
