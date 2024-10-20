@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/widgets/create_event_button.dart';
 import 'package:shared/widgets/event_list.dart';
-import 'package:organizer_app/repositories/create_event_repository.dart';
+import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});

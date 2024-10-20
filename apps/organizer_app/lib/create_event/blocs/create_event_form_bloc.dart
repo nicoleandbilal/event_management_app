@@ -1,9 +1,9 @@
 // create_event_form_bloc.dart
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:organizer_app/blocs/create_event/create_event_form_event.dart';
-import 'package:organizer_app/blocs/create_event/create_event_form_state.dart';
-import 'package:organizer_app/repositories/create_event_repository.dart';
+import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
+import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
+import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
 
 class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormState> {
   final CreateEventRepository eventRepository;

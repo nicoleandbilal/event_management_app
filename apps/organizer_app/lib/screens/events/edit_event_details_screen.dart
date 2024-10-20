@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared/models/event_model.dart';
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
 
-  const EditEventScreen({Key? key, required this.eventId}) : super(key: key);
+  const EditEventScreen({super.key, required this.eventId});
 
   @override
   _EditEventScreenState createState() => _EditEventScreenState();

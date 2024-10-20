@@ -2,7 +2,7 @@ import 'package:attendee_app/routes/auth_routes.dart';
 import 'package:attendee_app/routes/home_routes.dart';
 import 'package:attendee_app/screens/main_screen.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
+import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:flutter/material.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {

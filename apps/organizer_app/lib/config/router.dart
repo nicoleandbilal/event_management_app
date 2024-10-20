@@ -2,12 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/routes/auth_routes.dart';
+import 'package:organizer_app/authentication/auth_routes.dart';
 import 'package:organizer_app/routes/event_routes.dart'; // Import the event routes
 import 'package:organizer_app/routes/home_routes.dart';
-import 'package:organizer_app/screens/events/create_event_screen.dart';
+import 'package:organizer_app/create_event/screens/create_event_screen.dart';
 import 'package:organizer_app/screens/main_screen.dart';
-import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
+import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:organizer_app/widgets/error_dialog.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {

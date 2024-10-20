@@ -1,23 +1,22 @@
-// registration_screen.dart
+// login_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/blocs/all_auth/auth/auth_bloc.dart'; // Import AuthBloc
+import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:shared/blocs/all_auth/login/login_bloc.dart';
-import 'package:shared/blocs/all_auth/registration_bloc.dart';
 
-class RegistrationScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
   final String? email;  // Accept email as an optional parameter to pre-fill the email field
 
-  const RegistrationScreen({super.key, this.email});
+  const LoginScreen({super.key, this.email});
 
   @override
-  RegistrationScreenState createState() => RegistrationScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class RegistrationScreenState extends State<RegistrationScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -51,8 +50,9 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => RegistrationBloc(
+      create: (context) => LoginBloc(
         authRepository: context.read<AuthRepository>(),
+        authBloc: context.read<AuthBloc>(),
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -89,23 +89,23 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const SizedBox(height: 16),
-                            _createAccountText(),
-                            _createAccountSubText(),
+                            _welcomeBackText(),
+                            _welcomeBackSubText(),
                             const SizedBox(height: 16),
                             _emailField(),  // Email field with updated styling
                             const SizedBox(height: 16),
                             _passwordField(),
                             const SizedBox(height: 16),
-                            _registerButton(),
+                            _loginButton(),
                           ],
                         ),
                       ),
                       _orDivider(),
-                      _facebookSignUpButton(),
+                      _facebookLoginButton(),
                       const SizedBox(height: 20),
-                      _navigateToLogin(),
+                      _navigateToRegister(),
                       const SizedBox(height: 16),
-                      _registerError(),
+                      _loginError(),
                     ],
                   ),
                 ),
@@ -118,11 +118,11 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   // Welcome back text
-  Widget _createAccountText() {
+  Widget _welcomeBackText() {
     return const Padding(
       padding: EdgeInsets.only(top: 8.0),
       child: Text(
-        'Create Account',
+        'Welcome back, Creator.',
         style: TextStyle(
           fontSize: 24.0,
           fontWeight: FontWeight.normal,
@@ -133,7 +133,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   // Welcome back subtext
-  Widget _createAccountSubText() {
+  Widget _welcomeBackSubText() {
     return const Padding(
       padding: EdgeInsets.all(14.0),
       child: Text(
@@ -152,7 +152,8 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(3.0),
-        border: Border.all(color: Colors.grey),
+        border: Border.all(color: _isEmailPreFilled ? Colors.green : Colors.grey), // Change color if pre-filled
+        color: _isEmailPreFilled ? Colors.green.withOpacity(0.2) : Colors.transparent, // Light green background if pre-filled
       ),
       padding: const EdgeInsets.fromLTRB(6, 4, 12, 0),
       child: Column(
@@ -226,8 +227,8 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   // Login button
-  Widget _registerButton() {
-    return BlocBuilder<RegistrationBloc, RegistrationState>(
+  Widget _loginButton() {
+    return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
         if (state is LoginLoading) {
           return const CircularProgressIndicator();
@@ -246,8 +247,8 @@ class RegistrationScreenState extends State<RegistrationScreen> {
           ),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              context.read<RegistrationBloc>().add(
-                    RegistrationSubmitted(
+              context.read<LoginBloc>().add(
+                    LoginSubmitted(
                       _emailController.text.trim(),
                       _passwordController.text.trim(),
                     ),
@@ -281,7 +282,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   // Facebook login button
-  Widget _facebookSignUpButton() {
+  Widget _facebookLoginButton() {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         elevation: 0,
@@ -297,31 +298,31 @@ class RegistrationScreenState extends State<RegistrationScreen> {
       onPressed: () {
         // Handle Facebook login logic here
       },
-      label: const Text('Sign up with Facebook'),
+      label: const Text('Continue with Facebook'),
     );
   }
 
-  // Loginnavigation button
-  Widget _navigateToLogin() {
+  // Register navigation button
+  Widget _navigateToRegister() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text("Have an account?"),
+        const Text("Don't have an account?"),
         TextButton(
           onPressed: () {
-            context.go('/login');
+            context.go('/register');
           },
-          child: const Text('Login'),
+          child: const Text('Register'),
         ),
       ],
     );
   }
 
   // Login error widget
-  Widget _registerError() {
-    return BlocBuilder<RegistrationBloc, RegistrationState>(
+  Widget _loginError() {
+    return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
-        if (state is RegistrationFailure) {
+        if (state is LoginFailure) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(

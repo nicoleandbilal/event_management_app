@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/blocs/all_auth/auth/auth_bloc.dart';
+import 'package:shared/authentication/auth/auth_bloc.dart';
 
 /// This class helps to protect specific routes based on authentication state.
 class AuthGuard {

@@ -1,9 +1,9 @@
 // lib/routes/auth_routes.dart
 
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/screens/auth/registration_screen.dart';
-import 'package:organizer_app/screens/auth/login_screen.dart';
-import 'package:organizer_app/screens/auth/forgot_password_screen.dart';
+import 'package:organizer_app/authentication/screens/registration_screen.dart';
+import 'package:organizer_app/authentication/screens/login_screen.dart';
+import 'package:organizer_app/authentication/screens/forgot_password_screen.dart';
 
 
 List<GoRoute> authRoutes = [

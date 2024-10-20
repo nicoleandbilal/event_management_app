@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/blocs/create_event/create_event_form_bloc.dart';
-import 'package:organizer_app/blocs/create_event/create_event_form_state.dart';
+import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
+import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
 import 'package:organizer_app/widgets/create_event_form.dart';
-import 'package:organizer_app/repositories/create_event_repository.dart';
+import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});

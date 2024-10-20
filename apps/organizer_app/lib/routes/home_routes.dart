@@ -5,7 +5,7 @@ import 'package:organizer_app/screens/home/home_screen.dart';
 import 'package:organizer_app/screens/profile/profile_screen.dart';
 import 'package:organizer_app/screens/search/search_screen.dart';
 import 'package:organizer_app/screens/favorites/favorites_screen.dart';
-import 'package:organizer_app/screens/events/create_event_screen.dart';
+import 'package:organizer_app/create_event/screens/create_event_screen.dart';
 
 List<GoRoute> homeRoutes = [
   GoRoute(
