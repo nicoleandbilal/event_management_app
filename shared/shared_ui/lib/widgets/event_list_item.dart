@@ -1,13 +1,11 @@
-// lib/widgets/event_list_item.dart
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:shared/utils/date_formatter.dart';
 
 class EventListItem extends StatelessWidget {
   final String eventName;
   final DateTime startDateTime;
   final String venue;
-  final String imageUrl; // Example for a more complex layout
+  final String imageUrl;
   final VoidCallback onTap;
 
   const EventListItem({
@@ -21,7 +19,8 @@ class EventListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(startDateTime);
+    // Use the custom date formatter
+    String formattedDate = DateFormatter.formatDate(startDateTime);
 
     return GestureDetector(
       onTap: onTap,
@@ -33,22 +32,18 @@ class EventListItem extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Leading Image/Icon
               imageUrl.isNotEmpty 
-                  ? Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover):
-              
-              const SizedBox(width: 12),
-
-              // Main content in a Column
+                  ? Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover)
+                  : const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(eventName, style: Theme.of(context).textTheme.titleLarge), // Title
+                    Text(eventName, style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 4),
-                    Text(formattedDate), // Date
+                    Text(formattedDate), // Use the formatted date
                     const SizedBox(height: 4),
-                    Text(venue), // Venue
+                    Text(venue), 
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -60,4 +55,3 @@ class EventListItem extends StatelessWidget {
     );
   }
 }
-

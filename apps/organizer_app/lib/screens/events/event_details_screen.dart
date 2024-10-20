@@ -3,22 +3,34 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EventDetailsScreen extends StatelessWidget {
+class EventDetailsScreen extends StatefulWidget {
   final String eventId;
 
   const EventDetailsScreen({super.key, required this.eventId});
 
   @override
-  Widget build(BuildContext context) {
-    // Fetch the specific event document from Firestore
-    CollectionReference events = FirebaseFirestore.instance.collection('events');
+  State<EventDetailsScreen> createState() => _EventDetailsScreenState();
+}
 
+class _EventDetailsScreenState extends State<EventDetailsScreen> {
+
+  // Fetch the specific event document from Firestore
+  CollectionReference events = FirebaseFirestore.instance.collection('events');
+
+  // This method will fetch event details from Firestore
+  Future<DocumentSnapshot> _fetchEventDetails() {
+    return events.doc(widget.eventId).get();  // <--- Access widget.eventId now in StatefulWidget
+  }
+
+  
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Event Details'),
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        future: events.doc(eventId).get(),
+        future: _fetchEventDetails(),  // <--- Use the method to fetch event details
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           // Handle error state
@@ -54,7 +66,7 @@ class EventDetailsScreen extends StatelessWidget {
                 children: [
                   // Event Name
                   Text(
-                    data['name'] ?? 'No Name',
+                    data['eventName'] ?? 'No Name',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -94,15 +106,21 @@ class EventDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       ElevatedButton.icon(
-                        onPressed: () {
-                          // Navigate to Edit Event Screen
-                          Navigator.push(
+                        onPressed: () async {
+                          // Navigate to Edit Event Screen and wait for result
+                          bool? updated = await Navigator.push(  // <--- Wait for result
                             context,
                             MaterialPageRoute(
-                              builder: (context) => EditEventScreen(eventId: eventId),
+                              builder: (context) => 
+                                EditEventScreen(eventId: widget.eventId),  // <--- Use widget.eventId
                             ),
                           );
+
+                          if (updated == true) {  // <--- If updated, trigger a rebuild
+                            setState(() {});  // <--- Refresh the FutureBuilder                          
+                        }
                         },
+
                         icon: const Icon(Icons.edit),
                         label: const Text('Edit'),
                         style: ElevatedButton.styleFrom(
@@ -134,7 +152,7 @@ class EventDetailsScreen extends StatelessWidget {
 
                           if (confirm != null && confirm) {
                             // Delete the event
-                            await events.doc(eventId).delete();
+                            await events.doc(widget.eventId).delete();
                             Navigator.pop(context); // Go back after deletion
                           }
                         },
@@ -168,8 +186,14 @@ class EditEventScreen extends StatefulWidget {
 
 class _EditEventScreenState extends State<EditEventScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _name = '';
+  String _eventName = '';
   String _description = '';
+  DateTime? _startDateTime;
+  DateTime? _endDateTime;
+  String _category = '';
+  String _venue  = '';
+  String? _imageUrl  = '';
+
 
   // Fetch current event data
   Future<void> _fetchEventData() async {
@@ -182,8 +206,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
       Map<String, dynamic> data =
           eventSnapshot.data() as Map<String, dynamic>;
       setState(() {
-        _name = data['name'] ?? '';
+        _eventName = data['eventName'] ?? '';
         _description = data['description'] ?? '';
+        _startDateTime = (data['startDateTime'] as Timestamp).toDate();
+        _endDateTime = (data['endDateTime'] as Timestamp).toDate();
+        _category = data['category'] ?? '';
+        _venue = data['venue'] ?? '';
+        _imageUrl = data['imageUrl'] ?? '';
       });
     }
   }
@@ -199,11 +228,15 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _formKey.currentState!.save();
       // Update the event in Firestore
       await FirebaseFirestore.instance.collection('events').doc(widget.eventId).update({
-        'name': _name,
+        'eventName': _eventName,
         'description': _description,
-        'timestamp': FieldValue.serverTimestamp(),
+        'startDateTime': Timestamp.fromDate(_startDateTime!),
+        'endDateTime': Timestamp.fromDate(_endDateTime!),
+        'category': _category,
+        'venue': _venue,
+        'imageUrl': _imageUrl,
       });
-      Navigator.pop(context); // Go back after updating
+Navigator.pop(context, true);  // <--- Return true after successful update and go back after updating
     }
   }
 
@@ -215,18 +248,18 @@ class _EditEventScreenState extends State<EditEventScreen> {
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: (_name.isEmpty && _description.isEmpty)
+          child: (_eventName.isEmpty && _description.isEmpty)
               ? const Center(child: CircularProgressIndicator())
               : Form(
                   key: _formKey,
                   child: Column(
                     children: [
                       TextFormField(
-                        initialValue: _name,
+                        initialValue: _eventName,
                         decoration: const InputDecoration(labelText: 'Event Name'),
                         validator: (value) =>
                             value == null || value.isEmpty ? 'Enter event name' : null,
-                        onSaved: (value) => _name = value ?? '',
+                        onSaved: (value) => _eventName = value ?? '',
                       ),
                       TextFormField(
                         initialValue: _description,
