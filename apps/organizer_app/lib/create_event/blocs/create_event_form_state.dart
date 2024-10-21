@@ -23,3 +23,16 @@ class CreateEventFormFailure extends CreateEventFormState {
   @override
   List<Object> get props => [error];
 }
+
+// Image Uploading state
+class CreateEventFormImageUploading extends CreateEventFormState {}
+
+// Image Uploaded state
+class CreateEventFormImageUploaded extends CreateEventFormState {
+  final String imageUrl;
+
+  const CreateEventFormImageUploaded(this.imageUrl);
+
+  @override
+  List<Object> get props => [imageUrl];
+}

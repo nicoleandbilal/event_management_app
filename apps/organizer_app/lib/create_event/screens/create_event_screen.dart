@@ -7,6 +7,7 @@ import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
 import 'package:organizer_app/widgets/create_event_form.dart';
 import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // Add Firebase storage for uploading images
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -20,26 +21,30 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Widget build(BuildContext context) {
     // Ensure that CreateEventRepository is provided in the context
     final createEventRepository = RepositoryProvider.of<CreateEventRepository>(context);
+    final firebaseStorage = FirebaseStorage.instance;  // Add FirebaseStorage instance
 
     return BlocProvider(
-      create: (context) => CreateEventFormBloc(createEventRepository),
+      create: (context) => CreateEventFormBloc(createEventRepository, firebaseStorage),
       child: BlocListener<CreateEventFormBloc, CreateEventFormState>(
         listener: (context, state) {
           if (state is CreateEventFormSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Event created successfully!')),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Event created successfully!')),
+            );
           
-          // Instead of popping, navigate to a specific screen, such as home or event list
-          context.go('/favorites');  // Assuming '/home' is the route to your main/home screen
-}
+            // Instead of popping, navigate to a specific screen, such as home or event list
+            context.go('/favorites');  // Assuming '/favorites' is the route to the next screen
+          }
         },
         child: Scaffold(
           appBar: AppBar(
+            title: const Text('Create Event'),
           ),
-          body: const SingleChildScrollView(
+          body: const Padding(
             padding: EdgeInsets.all(20.0),
-            child: CreateEventForm(), // The form widget for creating an event
+            child: SingleChildScrollView(
+              child: CreateEventForm(), // The form widget for creating an event
+            ),
           ),
         ),
       ),

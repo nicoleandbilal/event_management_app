@@ -5,7 +5,7 @@ import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:shared/models/event_model.dart';
 import 'package:organizer_app/widgets/create_event_date_picker.dart';
-import 'package:organizer_app/widgets/create_event_image_upload.dart';
+import 'package:organizer_app/widgets/create_event_image_uploader.dart'; // Image uploader widget
 import 'package:shared/widgets/custom_input_box.dart'; // Import the new CustomInputBox
 import 'package:go_router/go_router.dart';
 
@@ -21,7 +21,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
   final TextEditingController _eventNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _venueController = TextEditingController();
-  final TextEditingController _urlController = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();  // Controller to hold image URL
 
   DateTime? _startDate;
   TimeOfDay? _startTime;
@@ -67,7 +67,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 endDateTime: endDateTime,
                 category: _selectedCategory ?? '',  // Use the selected category
                 venue: _venueController.text,
-                imageUrl: _urlController.text,
+                imageUrl: _urlController.text,  // Pass the uploaded image URL
               ),
             ),
           );
@@ -101,7 +101,10 @@ class _CreateEventFormState extends State<CreateEventForm> {
               },
             ),
             const SizedBox(height: 16),
-            CreateEventImageUpload(urlController: _urlController),
+            
+            // Add the image upload widget
+            CreateEventImageUpload(urlController: _urlController),  // Uploader for the image
+            
             const SizedBox(height: 16),
             _buildTextInput(
               'Event Description',

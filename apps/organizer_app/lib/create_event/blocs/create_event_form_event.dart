@@ -63,3 +63,11 @@ class UpdateCreateEventImageUrl extends CreateEventFormEvent {
   @override
   List<Object?> get props => [imageUrl];
 }
+
+// NEW: Event to handle image deletion
+class DeleteCreateEventImage extends CreateEventFormEvent {
+  const DeleteCreateEventImage();
+
+  @override
+  List<Object?> get props => [];
+}
