@@ -1,5 +1,3 @@
-// favourites_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -20,11 +18,10 @@ class FavoritesScreen extends StatelessWidget {
           child: CreateEventButton(
             onPressed: () {
               // Use GoRouter to navigate to the full-screen CreateEventScreen
-            context.go(
-              '/create_event', // Navigate to the full-screen CreateEventScreen
-              extra: context.read<CreateEventRepository>(), // Pass repository using 'extra'
-            );
-
+              context.go(
+                '/create_event', // Navigate to the full-screen CreateEventScreen
+                extra: context.read<CreateEventRepository>(), // Pass repository using 'extra'
+              );
             },
             label: 'Create New Event',
             style: ElevatedButton.styleFrom(

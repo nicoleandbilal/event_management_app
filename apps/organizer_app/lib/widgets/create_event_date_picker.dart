@@ -1,9 +1,7 @@
-// create_event_date_picker.dart
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:shared/widgets/input_box.dart';
+import 'package:shared/widgets/custom_input_box.dart'; // Import CustomInputBox
 
 class CreateEventDatePicker extends StatelessWidget {
   final String label;
@@ -63,8 +61,9 @@ class CreateEventDatePicker extends StatelessWidget {
           children: [
             // Date picker
             Expanded(
-              child: InputBox(
-                onTap: () => _selectDate(context),
+              child: CustomInputBox(
+                height: 50,  // Ensures consistent height
+                onTap: () => _selectDate(context),  // Trigger the date picker
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -89,8 +88,9 @@ class CreateEventDatePicker extends StatelessWidget {
 
             // Time picker
             Expanded(
-              child: InputBox(
-                onTap: () => _selectTime(context),
+              child: CustomInputBox(
+                height: 50,  // Ensures consistent height
+                onTap: () => _selectTime(context),  // Trigger the time picker
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

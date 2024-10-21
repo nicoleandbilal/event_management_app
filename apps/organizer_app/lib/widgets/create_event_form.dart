@@ -1,5 +1,3 @@
-// create_event_form.dart
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +6,7 @@ import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:shared/models/event_model.dart';
 import 'package:organizer_app/widgets/create_event_date_picker.dart';
 import 'package:organizer_app/widgets/create_event_image_upload.dart';
-import 'package:shared/widgets/input_box.dart';
+import 'package:shared/widgets/custom_input_box.dart'; // Import the new CustomInputBox
 import 'package:go_router/go_router.dart';
 
 class CreateEventForm extends StatefulWidget {
@@ -22,7 +20,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _eventNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _venueController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
 
@@ -31,12 +28,11 @@ class _CreateEventFormState extends State<CreateEventForm> {
   DateTime? _endDate;
   TimeOfDay? _endTime;
 
+  String? _selectedCategory;
+
   void _createEvent(BuildContext context) {
     if (_formKey.currentState!.validate()) {
-      if (_startDate == null ||
-          _startTime == null ||
-          _endDate == null ||
-          _endTime == null) {
+      if (_startDate == null || _startTime == null || _endDate == null || _endTime == null) {
         _showErrorDialog('Please select both start and end date/time');
         return;
       }
@@ -69,7 +65,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 description: _descriptionController.text,
                 startDateTime: startDateTime,
                 endDateTime: endDateTime,
-                category: _categoryController.text,
+                category: _selectedCategory ?? '',  // Use the selected category
                 venue: _venueController.text,
                 imageUrl: _urlController.text,
               ),
@@ -79,7 +75,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
   }
 
   void _showErrorDialog(String message) {
-    // Navigate to the error dialog route using GoRouter
     context.push(
       '/error',
       extra: {'message': message},
@@ -144,17 +139,10 @@ class _CreateEventFormState extends State<CreateEventForm> {
               },
             ),
             const SizedBox(height: 16),
-            _buildTextInput(
-              'Choose Category',
-              'Enter Category',
-              _categoryController,
-              (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter category name';
-                }
-                return null;
-              },
-            ),
+
+            // Dropdown for Category Selection
+            _buildCategoryDropdown(),
+
             const SizedBox(height: 16),
             _buildTextInput(
               'Choose Venue',
@@ -197,6 +185,49 @@ class _CreateEventFormState extends State<CreateEventForm> {
     );
   }
 
+  // Dropdown for Category
+  Widget _buildCategoryDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Choose Category',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+        ),
+        const SizedBox(height: 8),
+        CustomInputBox(  // Use CustomInputBox for consistent styling
+          isDropdown: true,  // Tell the input box that this is a dropdown
+          child: DropdownButtonFormField<String>(
+            value: _selectedCategory,
+            hint: const Text('Select Category'),
+            items: <String>['Conference', 'Workshop', 'Meetup', 'Seminar']
+                .map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                _selectedCategory = newValue;
+              });
+            },
+            decoration: const InputDecoration(
+              border: InputBorder.none,  // Use CustomInputBox border
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select a category';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Text Input Box
   Widget _buildTextInput(
     String label,
     String placeholder,
@@ -211,7 +242,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
         ),
         const SizedBox(height: 8),
-        InputBox(
+        CustomInputBox(
           child: TextFormField(
             controller: controller,
             decoration: InputDecoration(
@@ -220,7 +251,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 fontWeight: FontWeight.w300,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              border: InputBorder.none,
+              border: InputBorder.none,  // Use CustomInputBox border
             ),
             validator: validator,
           ),

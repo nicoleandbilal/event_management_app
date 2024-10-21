@@ -1,7 +1,6 @@
-// event_details_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:organizer_app/screens/events/edit_event_details_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   final String eventId;
@@ -13,270 +12,169 @@ class EventDetailsScreen extends StatefulWidget {
 }
 
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
+  final CollectionReference _eventsCollection =
+      FirebaseFirestore.instance.collection('events');
 
-  // Fetch the specific event document from Firestore
-  CollectionReference events = FirebaseFirestore.instance.collection('events');
-
-  // This method will fetch event details from Firestore
-  Future<DocumentSnapshot> _fetchEventDetails() {
-    return events.doc(widget.eventId).get();  // <--- Access widget.eventId now in StatefulWidget
-  }
-
-  
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Details'),
-      ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: _fetchEventDetails(),  // <--- Use the method to fetch event details
-        builder:
-            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          // Handle error state
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Something went wrong: ${snapshot.error}'),
-            );
-          }
-
-          // Handle loading state
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          // Check if document exists
-          if (!snapshot.data!.exists) {
-            return const Center(
-              child: Text('Event does not exist'),
-            );
-          }
-
-          // Retrieve event data
-          Map<String, dynamic> data =
-              snapshot.data!.data() as Map<String, dynamic>;
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Event Name
-                  Text(
-                    data['eventName'] ?? 'No Name',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Event Description
-                  Text(
-                    data['description'] ?? 'No Description',
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Event Timestamp
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today, size: 16),
-                      const SizedBox(width: 5),
-                      Text(
-                        data['timestamp'] != null
-                            ? (data['timestamp'] as Timestamp)
-                                .toDate()
-                                .toLocal()
-                                .toString()
-                            : 'No Date',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Optional: Edit and Delete Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          // Navigate to Edit Event Screen and wait for result
-                          bool? updated = await Navigator.push(  // <--- Wait for result
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => 
-                                EditEventScreen(eventId: widget.eventId),  // <--- Use widget.eventId
-                            ),
-                          );
-
-                          if (updated == true) {  // <--- If updated, trigger a rebuild
-                            setState(() {});  // <--- Refresh the FutureBuilder                          
-                        }
-                        },
-
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Edit'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          // Confirm deletion
-                          bool? confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Delete Event'),
-                              content:
-                                  const Text('Are you sure you want to delete this event?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Delete'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirm != null && confirm) {
-                            // Delete the event
-                            await events.doc(widget.eventId).delete();
-                            Navigator.pop(context); // Go back after deletion
-                          }
-                        },
-                        icon: const Icon(Icons.delete),
-                        label: const Text('Delete'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Optional: EditEventScreen for editing existing events
-class EditEventScreen extends StatefulWidget {
-  final String eventId;
-
-  const EditEventScreen({super.key, required this.eventId});
-
-  @override
-  _EditEventScreenState createState() => _EditEventScreenState();
-}
-
-class _EditEventScreenState extends State<EditEventScreen> {
-  final _formKey = GlobalKey<FormState>();
-  String _eventName = '';
-  String _description = '';
-  DateTime? _startDateTime;
-  DateTime? _endDateTime;
-  String _category = '';
-  String _venue  = '';
-  String? _imageUrl  = '';
-
-
-  // Fetch current event data
-  Future<void> _fetchEventData() async {
-    DocumentSnapshot eventSnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .doc(widget.eventId)
-        .get();
-
-    if (eventSnapshot.exists) {
-      Map<String, dynamic> data =
-          eventSnapshot.data() as Map<String, dynamic>;
-      setState(() {
-        _eventName = data['eventName'] ?? '';
-        _description = data['description'] ?? '';
-        _startDateTime = (data['startDateTime'] as Timestamp).toDate();
-        _endDateTime = (data['endDateTime'] as Timestamp).toDate();
-        _category = data['category'] ?? '';
-        _venue = data['venue'] ?? '';
-        _imageUrl = data['imageUrl'] ?? '';
-      });
-    }
-  }
+  bool _isLoading = true;
+  bool _isError = false;
+  String? _errorMessage;
+  DocumentSnapshot<Object?>? _eventData;
 
   @override
   void initState() {
     super.initState();
-    _fetchEventData();
+    _fetchEventDetails();
   }
 
-  void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      // Update the event in Firestore
-      await FirebaseFirestore.instance.collection('events').doc(widget.eventId).update({
-        'eventName': _eventName,
-        'description': _description,
-        'startDateTime': Timestamp.fromDate(_startDateTime!),
-        'endDateTime': Timestamp.fromDate(_endDateTime!),
-        'category': _category,
-        'venue': _venue,
-        'imageUrl': _imageUrl,
+  Future<void> _fetchEventDetails() async {
+    try {
+      final DocumentSnapshot<Object?> eventSnapshot =
+          await _eventsCollection.doc(widget.eventId).get();
+      if (eventSnapshot.exists) {
+        setState(() {
+          _eventData = eventSnapshot;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isError = true;
+          _errorMessage = "Event not found";
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      setState(() {
+        _isError = true;
+        _errorMessage = error.toString();
+        _isLoading = false;
       });
-Navigator.pop(context, true);  // <--- Return true after successful update and go back after updating
+    }
+  }
+
+  Future<void> _deleteEvent(BuildContext context) async {
+    try {
+      await _eventsCollection.doc(widget.eventId).delete();
+      Navigator.pop(context); // Go back to the previous screen after deletion
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting event: $error')),
+      );
+    }
+  }
+
+  void _navigateToEditEvent(BuildContext context) async {
+    final bool? isUpdated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditEventScreen(eventId: widget.eventId),
+      ),
+    );
+
+    if (isUpdated == true) {
+      _fetchEventDetails(); // Refresh event details after editing
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Edit Event'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: (_eventName.isEmpty && _description.isEmpty)
-              ? const Center(child: CircularProgressIndicator())
-              : Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        initialValue: _eventName,
-                        decoration: const InputDecoration(labelText: 'Event Name'),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? 'Enter event name' : null,
-                        onSaved: (value) => _eventName = value ?? '',
-                      ),
-                      TextFormField(
-                        initialValue: _description,
-                        decoration: const InputDecoration(labelText: 'Event Description'),
-                        validator: (value) => value == null || value.isEmpty
-                            ? 'Enter event description'
-                            : null,
-                        onSaved: (value) => _description = value ?? '',
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _submit,
-                        child: const Text('Update Event'),
-                      ),
-                    ],
+      appBar: AppBar(title: const Text('Event Details')),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator()) // Show loading indicator
+          : _isError
+              ? Center(child: Text(_errorMessage ?? 'An error occurred')) // Handle errors
+              : _buildEventDetails(context), // Build UI if no error
+    );
+  }
+
+  Widget _buildEventDetails(BuildContext context) {
+    final data = _eventData!.data() as Map<String, dynamic>; // Cast to Map<String, dynamic>
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Event Name
+            Text(
+              data['eventName'] ?? 'No Name',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Event Description
+            Text(
+              data['description'] ?? 'No Description',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+
+            // Event Date and Time
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16),
+                const SizedBox(width: 5),
+                Text(
+                  data['startDateTime'] != null
+                      ? (data['startDateTime'] as Timestamp).toDate().toLocal().toString()
+                      : 'No Date',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Buttons: Edit and Delete
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _navigateToEditEvent(context),
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Edit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
                   ),
                 ),
-        ));
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    bool? confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Event'),
+                        content: const Text('Are you sure you want to delete this event?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      _deleteEvent(context); // Delete the event if confirmed
+                    }
+                  },
+                  icon: const Icon(Icons.delete),
+                  label: const Text('Delete'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

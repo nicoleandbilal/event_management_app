@@ -2,17 +2,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/authentication/auth_routes.dart';
-import 'package:organizer_app/routes/event_routes.dart'; // Import the event routes
-import 'package:organizer_app/routes/home_routes.dart';
-import 'package:organizer_app/create_event/screens/create_event_screen.dart';
-import 'package:organizer_app/screens/main_screen.dart';
-import 'package:shared/authentication/auth/auth_bloc.dart';
+import 'package:organizer_app/authentication/auth_routes.dart';  // Authentication routes
+import 'package:organizer_app/routes/home_routes.dart';          // Home routes
+import 'package:organizer_app/screens/events/edit_event_details_screen.dart';
+import 'package:organizer_app/screens/events/event_details_screen.dart';
+import 'package:organizer_app/screens/main_screen.dart';         // Main screen layout
 import 'package:organizer_app/widgets/error_dialog.dart';
+import 'package:organizer_app/create_event/screens/create_event_screen.dart'; // Create Event screen
+
+import 'package:shared/authentication/auth/auth_bloc.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/login',  // Default starting route
     redirect: (context, state) {
       final isAuthenticated = authState is Authenticated;
       final unauthenticatedPaths = ['/login', '/register', '/forgot_password'];
@@ -28,25 +30,38 @@ GoRouter createGoRouter(BuildContext context, AuthState authState) {
         return '/home';
       }
 
-      return null; // No redirect needed
+      return null;  // No redirect needed
     },
     routes: [
-      ...authRoutes, // Includes /login, /register, /forgot_password routes
+      ...authRoutes,  // Authentication-related routes (/login, /register, etc.)
       ShellRoute(
         builder: (context, state, child) {
-          return MainScreen(child: child); // Wrap home-related routes in MainScreen
+          return MainScreen(child: child);  // Wraps child content with MainScreen
         },
         routes: [
-          ...homeRoutes, // All home-related routes
-          ...eventRoutes, // Include the event routes
+          ...homeRoutes,  // All home-related routes (/home, /search, etc.)
         ],
       ),
-      // Full-screen routes (outside the ShellRoute)
+      // Full-screen routes (not wrapped with MainScreen)
       GoRoute(
         path: '/create_event',
-        builder: (context, state) => const CreateEventScreen(),
+        builder: (context, state) => const CreateEventScreen(),  // Full-screen create event
       ),
-      // Error dialog route
+      GoRoute(
+        path: '/event_details/:id',  // Event details screen (full-screen)
+        builder: (context, state) {
+          final String eventId = state.pathParameters['id']!;
+          return EventDetailsScreen(eventId: eventId);  // Pass event ID
+        },
+      ),
+      GoRoute(
+        path: '/edit_event/:id',  // Edit event screen (full-screen)
+        builder: (context, state) {
+          final String eventId = state.pathParameters['id']!;
+          return EditEventScreen(eventId: eventId);  // Pass event ID
+        },
+      ),
+      // Error handling route
       GoRoute(
         path: '/error',
         pageBuilder: (context, state) {

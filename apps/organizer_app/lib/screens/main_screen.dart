@@ -22,7 +22,12 @@ class MainScreenState extends State<MainScreen> {
   final List<String> _tabs = ['/home', '/search', '/favorites', '/profile'];
 
   // List of full-screen routes (to hide AppBar and BottomNavigationBar)
-  final List<String> fullScreenRoutes = ['/create_event', '/edit_event', '/view_event'];
+  final List<String> fullScreenRoutes = [
+    '/create_event',
+    '/edit_event',
+    '/view_event',
+    '/event_details',  // Add Event Details route here
+  ];
 
   @override
   void initState() {

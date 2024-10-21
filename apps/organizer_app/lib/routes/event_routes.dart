@@ -6,17 +6,16 @@ import 'package:organizer_app/create_event/screens/create_event_screen.dart';
 
 List<GoRoute> eventRoutes = [
   GoRoute(
-    path: '/create_event',
+    path: '/event_details/:id',  // Dynamic route with event ID as a parameter
     builder: (context, state) {
-      return const CreateEventScreen();
+      final String eventId = state.pathParameters['id']!;  // Get event ID from URL
+      return EventDetailsScreen(eventId: eventId);  // Pass event ID to the screen
     },
   ),
   GoRoute(
-    path: '/event_details/:id', // Dynamic route with event ID as a parameter
+    path: '/create_event',
     builder: (context, state) {
-      // Retrieve the event ID from state.params
-      final String eventId = state.pathParameters['id']!;
-      return EventDetailsScreen(eventId: eventId); // Pass the event ID to the screen
+      return const CreateEventScreen();  // Render the event creation screen
     },
   ),
 ];
