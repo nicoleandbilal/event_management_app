@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:shared/widgets/custom_input_box.dart'; // Import CustomInputBox
+import 'package:shared/widgets/custom_input_box.dart';
 
 class CreateEventDatePicker extends StatelessWidget {
   final String label;
@@ -59,6 +59,7 @@ class CreateEventDatePicker extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            
             // Date picker
             Expanded(
               child: CustomInputBox(
@@ -69,7 +70,7 @@ class CreateEventDatePicker extends StatelessWidget {
                   children: [
                     Text(
                       date == null
-                          ? 'Choose date' // Placeholder
+                          ? 'Choose date'
                           : DateFormat('MM/dd/yyyy').format(date!),
                       style: GoogleFonts.raleway(
                         textStyle: TextStyle(
