@@ -45,7 +45,7 @@ class MainNavigationBloc extends Bloc<MainNavigationEvent, MainNavigationState> 
     '/create_event',
     '/edit_event',
     '/view_event',
-    '/event_details',
+    '/event_listing',
   ];
 
   MainNavigationBloc() : super(const TabSelectedState(0, false)) {

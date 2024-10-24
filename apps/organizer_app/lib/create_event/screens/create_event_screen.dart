@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
 import 'package:organizer_app/create_event/widgets/create_event_form.dart';
-import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
+import 'package:shared/repositories/event_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart'; // Add Firebase storage for uploading images
 
 class CreateEventScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class CreateEventScreenState extends State<CreateEventScreen> {
   @override
   Widget build(BuildContext context) {
     // Ensure that CreateEventRepository is provided in the context
-    final createEventRepository = RepositoryProvider.of<CreateEventRepository>(context);
+    final createEventRepository = RepositoryProvider.of<EventRepository>(context);
     final firebaseStorage = FirebaseStorage.instance;  // Add FirebaseStorage instance
 
     return BlocProvider(

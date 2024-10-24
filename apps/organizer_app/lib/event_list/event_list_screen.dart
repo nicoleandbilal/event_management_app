@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/create_event/widgets/create_event_button.dart';
-import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
+import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/event_list/event_list.dart';
 
 class EventListScreen extends StatelessWidget {
@@ -20,7 +20,7 @@ class EventListScreen extends StatelessWidget {
               // Use GoRouter to navigate to the full-screen CreateEventScreen
               context.push(
                 '/create_event', // Navigate to the full-screen CreateEventScreen
-                extra: context.read<CreateEventRepository>(), // Pass repository using 'extra'
+                extra: context.read<EventRepository>(), // Pass repository using 'extra'
               );
             },
             label: 'Create New Event',

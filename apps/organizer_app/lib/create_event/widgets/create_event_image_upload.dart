@@ -11,7 +11,7 @@ import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
 class CreateEventImageUpload extends StatefulWidget {
   final TextEditingController urlController;
 
-  const CreateEventImageUpload({required this.urlController, Key? key}) : super(key: key);
+  const CreateEventImageUpload({required this.urlController, super.key});
 
   @override
   _CreateEventImageUploadState createState() => _CreateEventImageUploadState();

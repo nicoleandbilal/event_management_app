@@ -1,5 +1,3 @@
-// create_event_form.dart
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,9 +6,9 @@ import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:shared/widgets/date_and_time_picker.dart';
 import 'package:organizer_app/create_event/widgets/create_event_image_upload.dart';
 import 'package:shared/models/event_model.dart';
-import 'package:shared/widgets/date_picker.dart';
 import 'package:shared/widgets/custom_input_box.dart'; // Import the new CustomInputBox
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateEventForm extends StatefulWidget {
   const CreateEventForm({super.key});
@@ -40,6 +38,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
         return;
       }
 
+      // Combining date and time into DateTime
       DateTime startDateTime = DateTime(
         _startDate!.year,
         _startDate!.month,
@@ -61,19 +60,26 @@ class _CreateEventFormState extends State<CreateEventForm> {
         return;
       }
 
-      context.read<CreateEventFormBloc>().add(
-            SubmitCreateEventForm(
-              Event(
-                eventName: _eventNameController.text,
-                description: _descriptionController.text,
-                startDateTime: startDateTime,
-                endDateTime: endDateTime,
-                category: _selectedCategory ?? '',  // Use the selected category
-                venue: _venueController.text,
-                imageUrl: _urlController.text,  // Pass the uploaded image URL
-              ),
-            ),
-          );
+      // Creating an Event object with the updated model
+      final newEvent = Event(
+        eventId: '',  // Leave empty since Firestore auto-generates it
+        brandId: 'some_brand_id',  // Replace with actual brand ID if needed
+        eventName: _eventNameController.text,
+        description: _descriptionController.text,
+        category: _selectedCategory ?? 'Other',  // Default to 'Other' if not selected
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
+        venue: _venueController.text,
+        imageUrl: _urlController.text.isEmpty ? null : _urlController.text,  // Set to null if no image URL provided
+        status: 'draft',  // Default status set to 'draft'
+        createdAt: Timestamp.now(),  // Firestore's timestamp for creation
+        updatedAt: null,  // No update time on creation
+        saleStartDate: null,  // Optional: set based on user input
+        saleEndDate: null,  // Optional: set based on user input
+      );
+
+      // Submit the event using the bloc
+      context.read<CreateEventFormBloc>().add(SubmitCreateEventForm(newEvent));
     }
   }
 
@@ -161,6 +167,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 return null;
               },
             ),
+
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -206,7 +213,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
           child: DropdownButtonFormField<String>(
             value: _selectedCategory,
             hint: const Text('Select Category'),
-            items: <String>['Conference', 'Workshop', 'Meetup', 'Seminar']
+            items: <String>['Conference', 'Workshop', 'Meetup', 'Seminar', 'Other']
                 .map((String value) {
               return DropdownMenuItem<String>(
                 value: value,

@@ -1,20 +1,20 @@
-// create_event_form_bloc.dart
+// lib/blocs/create_event_form_bloc.dart
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
-import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import 'package:shared/repositories/event_repository.dart';
 
 class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormState> {
-  final CreateEventRepository eventRepository;
-  final FirebaseStorage firebaseStorage; // Firebase Storage added
+  final EventRepository eventRepository; // Refactor to use EventRepository
+  final FirebaseStorage firebaseStorage;
 
   CreateEventFormBloc(this.eventRepository, this.firebaseStorage) : super(CreateEventFormInitial()) {
     on<SubmitCreateEventForm>(_onSubmitCreateEventForm);
     on<UpdateCreateEventImageUrl>(_onUpdateCreateEventImageUrl);
-    on<DeleteCreateEventImage>(_onDeleteCreateEventImage);  // Add the handler for the new delete event
+    on<DeleteCreateEventImage>(_onDeleteCreateEventImage);
   }
 
   // Handle image upload
@@ -44,10 +44,12 @@ class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormStat
     emit(CreateEventFormInitial()); // Reset the form state to initial, allowing new image uploads
   }
 
+  // Handle event form submission
   Future<void> _onSubmitCreateEventForm(
       SubmitCreateEventForm event, Emitter<CreateEventFormState> emit) async {
     emit(CreateEventFormLoading());
     try {
+      // Refactor to use submitEvent from EventRepository
       await eventRepository.submitEvent(event.event);
       emit(CreateEventFormSuccess()); // Success state emitted here
     } catch (error) {
