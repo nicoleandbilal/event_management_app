@@ -1,11 +1,14 @@
+// create_event_form.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
-import 'package:organizer_app/widgets/create_event_image_upload.dart';
+import 'package:shared/widgets/date_and_time_picker.dart';
+import 'package:organizer_app/create_event/widgets/create_event_image_upload.dart';
 import 'package:shared/models/event_model.dart';
-import 'package:organizer_app/widgets/create_event_date_picker.dart';
+import 'package:shared/widgets/date_picker.dart';
 import 'package:shared/widgets/custom_input_box.dart'; // Import the new CustomInputBox
 import 'package:go_router/go_router.dart';
 

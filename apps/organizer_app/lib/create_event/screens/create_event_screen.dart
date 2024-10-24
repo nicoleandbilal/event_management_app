@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
-import 'package:organizer_app/widgets/create_event_form.dart';
+import 'package:organizer_app/create_event/widgets/create_event_form.dart';
 import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart'; // Add Firebase storage for uploading images
 
@@ -13,10 +13,10 @@ class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
 
   @override
-  _CreateEventScreenState createState() => _CreateEventScreenState();
+  CreateEventScreenState createState() => CreateEventScreenState();
 }
 
-class _CreateEventScreenState extends State<CreateEventScreen> {
+class CreateEventScreenState extends State<CreateEventScreen> {
   @override
   Widget build(BuildContext context) {
     // Ensure that CreateEventRepository is provided in the context
@@ -33,7 +33,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             );
           
             // Instead of popping, navigate to a specific screen, such as home or event list
-            context.go('/favorites');  // Assuming '/favorites' is the route to the next screen
+            context.go('/events');  // Assuming '/favorites' is the route to the next screen
           }
         },
         child: Scaffold(

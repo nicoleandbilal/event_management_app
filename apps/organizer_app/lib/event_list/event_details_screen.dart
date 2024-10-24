@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:organizer_app/screens/events/edit_event_details_screen.dart';
+import 'package:organizer_app/event_list/edit_event_details_screen.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   final String eventId;

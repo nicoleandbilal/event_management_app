@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:organizer_app/widgets/create_event_date_picker.dart'; // Reuse existing widget
-import 'package:shared/widgets/custom_input_box.dart'; // Use CustomInputBox for consistency
+import 'package:shared/widgets/date_and_time_picker.dart'; // Updated Date and Time Picker
+import 'package:shared/widgets/custom_input_box.dart'; // CustomInputBox for consistency
+import 'package:shared/widgets/dropdown_time_picker.dart';
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
@@ -9,10 +10,10 @@ class EditEventScreen extends StatefulWidget {
   const EditEventScreen({super.key, required this.eventId});
 
   @override
-  _EditEventScreenState createState() => _EditEventScreenState();
+  EditEventScreenState createState() => EditEventScreenState();
 }
 
-class _EditEventScreenState extends State<EditEventScreen> {
+class EditEventScreenState extends State<EditEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _eventNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -50,7 +51,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
           _venueController.text = data['venue'] ?? '';
           _urlController.text = data['imageUrl'] ?? '';
           _startDate = (data['startDateTime'] as Timestamp).toDate();
+          _startTime = TimeOfDay.fromDateTime((data['startDateTime'] as Timestamp).toDate());
           _endDate = (data['endDateTime'] as Timestamp).toDate();
+          _endTime = TimeOfDay.fromDateTime((data['endDateTime'] as Timestamp).toDate());
           _selectedCategory = data['category'] ?? '';
           _isLoading = false;
         });
@@ -66,7 +69,28 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
+      if (_startDate == null || _startTime == null || _endDate == null || _endTime == null) {
+        _showError('Please select both start and end date/time');
+        return;
+      }
+
       setState(() => _isSubmitting = true);
+
+      DateTime startDateTime = DateTime(
+        _startDate!.year,
+        _startDate!.month,
+        _startDate!.day,
+        _startTime!.hour,
+        _startTime!.minute,
+      );
+
+      DateTime endDateTime = DateTime(
+        _endDate!.year,
+        _endDate!.month,
+        _endDate!.day,
+        _endTime!.hour,
+        _endTime!.minute,
+      );
 
       try {
         await FirebaseFirestore.instance.collection('events').doc(widget.eventId).update({
@@ -75,8 +99,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
           'venue': _venueController.text,
           'imageUrl': _urlController.text,
           'category': _selectedCategory ?? '',
-          'startDateTime': Timestamp.fromDate(_startDate!),
-          'endDateTime': Timestamp.fromDate(_endDate!),
+          'startDateTime': Timestamp.fromDate(startDateTime),
+          'endDateTime': Timestamp.fromDate(endDateTime),
         });
         Navigator.pop(context, true);
       } catch (e) {

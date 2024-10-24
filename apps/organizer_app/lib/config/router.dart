@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:organizer_app/authentication/auth_routes.dart';  // Authentication routes
 import 'package:organizer_app/main_and_navigation/main_navigation_bloc.dart';
 import 'package:organizer_app/main_and_navigation/navigation_routes.dart';          // Home routes
-import 'package:organizer_app/screens/events/edit_event_details_screen.dart';
-import 'package:organizer_app/screens/events/event_details_screen.dart';
+import 'package:organizer_app/event_list/edit_event_details_screen.dart';
+import 'package:organizer_app/event_list/event_details_screen.dart';
 import 'package:organizer_app/main_and_navigation/main_screen.dart';         // Main screen layout
 import 'package:organizer_app/widgets/error_dialog.dart';
 import 'package:organizer_app/create_event/screens/create_event_screen.dart'; // Create Event screen

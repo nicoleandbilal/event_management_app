@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/widgets/create_event_button.dart';
-import 'package:shared/widgets/event_list.dart';
+import 'package:organizer_app/create_event/widgets/create_event_button.dart';
 import 'package:organizer_app/create_event/repositories/create_event_repository.dart';
+import 'package:shared/event_list/event_list.dart';
 
-class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
+class EventListScreen extends StatelessWidget {
+  const EventListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class FavoritesScreen extends StatelessWidget {
           child: CreateEventButton(
             onPressed: () {
               // Use GoRouter to navigate to the full-screen CreateEventScreen
-              context.go(
+              context.push(
                 '/create_event', // Navigate to the full-screen CreateEventScreen
                 extra: context.read<CreateEventRepository>(), // Pass repository using 'extra'
               );
