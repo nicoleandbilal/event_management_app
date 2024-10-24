@@ -1,63 +1,79 @@
-// lib/models/create_event_model.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Event {
+  final String eventId;
+  final String? brandId; // Foreign key to relate to the Brand
   final String eventName;
   final String description;
+  final String category;
   final DateTime startDateTime;
   final DateTime endDateTime;
-  final String category;
   final String venue;
-  final String? imageUrl;
+  final String? eventCoverImageFullUrl;
+  final String? eventCoverImageCroppedUrl;
+  final String? status; // e.g., draft, live, canceled
+  final Timestamp createdAt;
+  final Timestamp? updatedAt;
+  final Timestamp? saleStartDate; // When ticket sales start
+  final Timestamp? saleEndDate; // When ticket sales end
 
   Event({
+    required this.eventId,
+    required this.brandId,
     required this.eventName,
     required this.description,
+    required this.category,
     required this.startDateTime,
     required this.endDateTime,
-    required this.category,
     required this.venue,
-    this.imageUrl,
+    this.eventCoverImageFullUrl,
+    this.eventCoverImageCroppedUrl,
+    required this.status,
+    required this.createdAt,
+    this.updatedAt,
+    this.saleStartDate,
+    this.saleEndDate,
   });
 
-  // Convert to JSON if needed for API request or storage
-  Map<String, dynamic> toJson() {
-    return {
-      'eventName': eventName,
-      'description': description,
-      'startDateTime': startDateTime.toIso8601String(),
-      'endDateTime': endDateTime.toIso8601String(),
-      'category': category,
-      'venue': venue,
-      'imageUrl': imageUrl,
-    };
-  }
-
-  // You can also implement fromJson if you're retrieving event data
-  factory Event.fromJson(Map<String, dynamic> json) {
+  // Convert Firestore document to Event model
+  factory Event.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Event(
-      eventName: json['eventName'],
-      description: json['description'],
-      startDateTime: DateTime.parse(json['startDateTime']),
-      endDateTime: DateTime.parse(json['endDateTime']),
-      category: json['category'],
-      venue: json['venue'],
-      imageUrl: json['imageUrl'],
+      eventId: doc.id,
+      brandId: data['brandId'],
+      eventName: data['eventName'] ?? '',
+      description: data['description'] ?? '',
+      category: data['category'] ?? '',
+      startDateTime: (data['startDateTime'] as Timestamp).toDate(),
+      endDateTime: (data['endDateTime'] as Timestamp).toDate(),
+      venue: data['venue'] ?? '',
+      eventCoverImageFullUrl: data['eventCoverImageFullUrl'],
+      eventCoverImageCroppedUrl: data['eventCoverImageCroppedUrl'],
+      status: data['status'] ?? 'draft',
+      createdAt: data['createdAt'] ?? Timestamp.now(),
+      updatedAt: data['updatedAt'],
+      saleStartDate: data['saleStartDate'],
+      saleEndDate: data['saleEndDate'],
     );
   }
-  
- factory Event.fromDocument(DocumentSnapshot doc) {
-  final data = doc.data() as Map<String, dynamic>;
-  return Event(
-    eventName: data['eventName'] ?? '',
-    description: data['description'] ?? '',
-    startDateTime: DateTime.parse(data['startDateTime']),
-    endDateTime: DateTime.parse(data['endDateTime']),
-    category: data['category'] ?? '',
-    venue: data['venue'] ?? '',
-    imageUrl: data['imageUrl'],
-  );
-}
 
+  // Convert Event model to JSON for Firestore
+  Map<String, dynamic> toJson() {
+    return {
+      'brandId': brandId,
+      'eventName': eventName,
+      'description': description,
+      'category': category,
+      'startDateTime': Timestamp.fromDate(startDateTime),
+      'endDateTime': Timestamp.fromDate(endDateTime),
+      'venue': venue,
+      'eventCoverImageFullUrl': eventCoverImageFullUrl,
+      'eventCoverImageCroppedUrl': eventCoverImageCroppedUrl,
+      'status': status,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'saleStartDate': saleStartDate,
+      'saleEndDate': saleEndDate,
+    };
+  }
 }

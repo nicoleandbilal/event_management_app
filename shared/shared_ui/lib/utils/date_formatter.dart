@@ -18,14 +18,12 @@ class DateFormatter {
     }
   }
 
-  // Main function to format date as: Wed 21st Jun at 18:00
+  // Main function to format date as: Wed 21st Jun
   static String formatDate(DateTime dateTime) {
     String dayWithSuffix = _getDayWithSuffix(dateTime.day);
     String formattedDate = DateFormat('EEE').format(dateTime); // Day of the week
-    String month = DateFormat('MMM').format(dateTime);         // Month abbreviation
-    String time = DateFormat('kk:mm').format(dateTime);        // Time in 24-hour format
-
-    // Build the final formatted date string
-    return '$formattedDate $dayWithSuffix $month at $time';
+    String month = DateFormat('MMM').format(dateTime);         // Month abbreviation   
+ // Return formatted date
+    return '$formattedDate $dayWithSuffix $month'; 
   }
 }

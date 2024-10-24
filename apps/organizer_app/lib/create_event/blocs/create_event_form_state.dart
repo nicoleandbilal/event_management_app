@@ -1,5 +1,3 @@
-// create_event_form_state.dart
-
 import 'package:equatable/equatable.dart';
 
 abstract class CreateEventFormState extends Equatable {
@@ -24,10 +22,10 @@ class CreateEventFormFailure extends CreateEventFormState {
   List<Object> get props => [error];
 }
 
-// Image Uploading state
+// Image uploading state
 class CreateEventFormImageUploading extends CreateEventFormState {}
 
-// Image Uploaded state
+// Image uploaded state
 class CreateEventFormImageUploaded extends CreateEventFormState {
   final String imageUrl;
 

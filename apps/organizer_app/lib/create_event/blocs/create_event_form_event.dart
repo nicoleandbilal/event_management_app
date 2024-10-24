@@ -1,5 +1,3 @@
-// create_event_form_event.dart
-
 import 'package:equatable/equatable.dart';
 import 'package:shared/models/event_model.dart';
 
@@ -19,42 +17,7 @@ class SubmitCreateEventForm extends CreateEventFormEvent {
   List<Object?> get props => [event];
 }
 
-class UpdateCreateEventName extends CreateEventFormEvent {
-  final String eventName;
-
-  const UpdateCreateEventName(this.eventName);
-
-  @override
-  List<Object?> get props => [eventName];
-}
-
-class UpdateCreateEventDescription extends CreateEventFormEvent {
-  final String description;
-
-  const UpdateCreateEventDescription(this.description);
-
-  @override
-  List<Object?> get props => [description];
-}
-
-class UpdateCreateEventStartDateTime extends CreateEventFormEvent {
-  final DateTime startDateTime;
-
-  const UpdateCreateEventStartDateTime(this.startDateTime);
-
-  @override
-  List<Object?> get props => [startDateTime];
-}
-
-class UpdateCreateEventEndDateTime extends CreateEventFormEvent {
-  final DateTime endDateTime;
-
-  const UpdateCreateEventEndDateTime(this.endDateTime);
-
-  @override
-  List<Object?> get props => [endDateTime];
-}
-
+// Event to update the event image URL
 class UpdateCreateEventImageUrl extends CreateEventFormEvent {
   final String imageUrl;
 

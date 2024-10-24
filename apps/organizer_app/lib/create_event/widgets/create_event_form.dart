@@ -70,7 +70,8 @@ class _CreateEventFormState extends State<CreateEventForm> {
         startDateTime: startDateTime,
         endDateTime: endDateTime,
         venue: _venueController.text,
-        imageUrl: _urlController.text.isEmpty ? null : _urlController.text,  // Set to null if no image URL provided
+        eventCoverImageFullUrl: _urlController.text.isEmpty ? null : _urlController.text,  // Set to null if no image URL provided
+        eventCoverImageCroppedUrl: _urlController.text.isEmpty ? null : _urlController.text,  // Set to null if no image URL provided
         status: 'draft',  // Default status set to 'draft'
         createdAt: Timestamp.now(),  // Firestore's timestamp for creation
         updatedAt: null,  // No update time on creation

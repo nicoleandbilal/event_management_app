@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart'; // Import AuthBloc
 import 'package:shared/repositories/auth_repository.dart';
-import 'package:shared/blocs/all_auth/login/login_bloc.dart';
+import 'package:shared/authentication/login/login_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? email;  // Accept email as an optional parameter to pre-fill the email field
