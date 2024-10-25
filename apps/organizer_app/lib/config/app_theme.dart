@@ -6,10 +6,10 @@ class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     primarySwatch: Colors.blue,
     appBarTheme: const AppBarTheme(
-      color: Colors.blueAccent,
-      iconTheme: IconThemeData(color: Colors.white),
+      color: Colors.transparent,
+      iconTheme: IconThemeData(color: Color(0xFF3B3B3B),),
       titleTextStyle: TextStyle(
-        color: Colors.black,
+        color: Color(0xFF3B3B3B),
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),

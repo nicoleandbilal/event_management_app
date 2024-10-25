@@ -8,6 +8,12 @@ class AuthRepository {
   AuthRepository({FirebaseAuth? firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
+  // Stream to track auth state changes
+  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();  
+
+   // Get current authenticated user
+  User? getCurrentUser() => _firebaseAuth.currentUser;  
+
   // Sign in using Email and Password
   Future<User?> signInWithEmail(String email, String password) async {
     try {
@@ -73,14 +79,6 @@ class AuthRepository {
     await _firebaseAuth.signOut();
     _logger.i('AuthRepository: Sign out successful.');
   }
-
-  // Get the current authenticated user
-  User? getCurrentUser() {
-    return _firebaseAuth.currentUser;
-  }
-
-  // Stream of authentication state changes
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   // Centralized error handling (for reusable handling)
   void _handleFirebaseAuthException(FirebaseAuthException e) {

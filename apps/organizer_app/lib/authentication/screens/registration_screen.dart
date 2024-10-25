@@ -1,15 +1,15 @@
-// registration_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
-import 'package:shared/repositories/auth_repository.dart';
 import 'package:shared/authentication/login/login_bloc.dart';
+import 'package:shared/repositories/auth_repository.dart';
 import 'package:shared/authentication/register/registration_bloc.dart';
+import 'package:shared/widgets/custom_label_input_box.dart';
+import 'package:shared/widgets/custom_label_input_box.dart';
 
 class RegistrationScreen extends StatefulWidget {
-  final String? email;  // Accept email as an optional parameter to pre-fill the email field
+  final String? email;
 
   const RegistrationScreen({super.key, this.email});
 
@@ -19,15 +19,17 @@ class RegistrationScreen extends StatefulWidget {
 
 class RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isEmailPreFilled = false;
 
   @override
   void initState() {
     super.initState();
 
-    // If the email is passed from the CheckerScreen, pre-fill the email field
     if (widget.email != null && widget.email!.isNotEmpty) {
       _emailController.text = widget.email!;
       _isEmailPreFilled = true;
@@ -38,12 +40,11 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     
-    // Retrieve the recognized email from AuthBloc if passed via AuthBloc state
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthEmailRecognized && authState.email.isNotEmpty && !_isEmailPreFilled) {
       _emailController.text = authState.email;
       setState(() {
-        _isEmailPreFilled = true; // Mark the email as pre-filled
+        _isEmailPreFilled = true;
       });
     }
   }
@@ -92,9 +93,28 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                             _createAccountText(),
                             _createAccountSubText(),
                             const SizedBox(height: 16),
-                            _emailField(),  // Email field with updated styling
+                            _nameFields(),  // Add first name and last name fields
                             const SizedBox(height: 16),
-                            _passwordField(),
+                            CustomLabelInputBox(
+                              labelText: 'Email Address',
+                              validationMessage: 'Please enter your email',
+                              controller: _emailController,
+                              obscureText: false,
+                            ),
+                            const SizedBox(height: 16),
+                            CustomLabelInputBox(
+                              labelText: 'Password',
+                              validationMessage: 'Please enter your password',
+                              controller: _passwordController,
+                              obscureText: true,
+                            ),
+                            const SizedBox(height: 16),
+                            CustomLabelInputBox(
+                              labelText: 'Confirm Password',
+                              validationMessage: 'Please confirm your password',
+                              controller: _confirmPasswordController,
+                              obscureText: true,
+                            ),
                             const SizedBox(height: 16),
                             _registerButton(),
                           ],
@@ -137,7 +157,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     return const Padding(
       padding: EdgeInsets.all(14.0),
       child: Text(
-        'Enter your email to continue',
+        'Enter your details to continue',
         style: TextStyle(
           fontSize: 14.0,
           color: Colors.grey,
@@ -147,85 +167,32 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // Email input field
-  Widget _emailField() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(3.0),
-        border: Border.all(color: Colors.grey),
-      ),
-      padding: const EdgeInsets.fromLTRB(6, 4, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Email Address',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
+  // Name fields (First Name and Last Name)
+  Widget _nameFields() {
+    return Row(
+      children: [
+        Expanded(
+          child: CustomLabelInputBox(
+            labelText: 'First Name',
+            validationMessage: 'Please enter your first name',
+            controller: _firstNameController,
+            obscureText: false,
           ),
-          TextFormField(
-            controller: _emailController,
-            style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
-            ),
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your email';
-              }
-              return null;
-            },
+        ),
+        const SizedBox(width: 16),  // Add space between first and last name fields
+        Expanded(
+          child: CustomLabelInputBox(
+            labelText: 'Last Name',
+            validationMessage: 'Please enter your last name',
+            controller: _lastNameController,
+            obscureText: false,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // Password input field
-  Widget _passwordField() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(3.0),
-        border: Border.all(color: Colors.grey),
-      ),
-      padding: const EdgeInsets.fromLTRB(6, 4, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Password',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
-          TextFormField(
-            controller: _passwordController,
-            obscureText: true,
-            style: const TextStyle(fontSize: 14),
-            decoration: const InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 0),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your password';
-              }
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Login button
+  // Register button
   Widget _registerButton() {
     return BlocBuilder<RegistrationBloc, RegistrationState>(
       builder: (context, state) {
@@ -246,6 +213,13 @@ class RegistrationScreenState extends State<RegistrationScreen> {
           ),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
+              if (_passwordController.text != _confirmPasswordController.text) {
+                // Handle password mismatch error
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Passwords do not match')),
+                );
+                return;
+              }
               context.read<RegistrationBloc>().add(
                     RegistrationSubmitted(
                       _emailController.text.trim(),
