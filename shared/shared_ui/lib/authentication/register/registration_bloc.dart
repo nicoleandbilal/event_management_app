@@ -1,10 +1,9 @@
-// lib/blocs/auth/registration_bloc.dart
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../repositories/auth_repository.dart';
-import 'package:logger/logger.dart'; // Import the logger package
+import '../../../repositories/user_repository.dart'; // Add user repository import
+import 'package:logger/logger.dart';
 
 // Events for RegistrationBloc
 abstract class RegistrationEvent extends Equatable {
@@ -32,10 +31,17 @@ class RegistrationPasswordChanged extends RegistrationEvent {
 class RegistrationSubmitted extends RegistrationEvent {
   final String email;
   final String password;
-  const RegistrationSubmitted(this.email, this.password);
+  final String firstName;
+  final String lastName; // New fields for first and last name
+  const RegistrationSubmitted({
+    required this.email,
+    required this.password,
+    required this.firstName,
+    required this.lastName,
+  });
 
   @override
-  List<Object> get props => [email, password];
+  List<Object> get props => [email, password, firstName, lastName];
 }
 
 // States for RegistrationBloc
@@ -69,10 +75,14 @@ class RegistrationFailure extends RegistrationState {
 // Bloc Implementation
 class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   final AuthRepository _authRepository;
+  final UserRepository _userRepository; // Add user repository dependency
   final Logger _logger = Logger(); // Initialize logger
 
-  RegistrationBloc({required AuthRepository authRepository})
-      : _authRepository = authRepository,
+  RegistrationBloc({
+    required AuthRepository authRepository,
+    required UserRepository userRepository,
+  })  : _authRepository = authRepository,
+        _userRepository = userRepository,
         super(RegistrationInitial()) {
     // Register event handlers
     on<RegistrationEmailChanged>(_onRegistrationEmailChanged);
@@ -83,13 +93,11 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   void _onRegistrationEmailChanged(
       RegistrationEmailChanged event, Emitter<RegistrationState> emit) {
     _logger.d('RegistrationBloc: Email changed to ${event.email}');
-    // Optionally handle email changes for validation
   }
 
   void _onRegistrationPasswordChanged(
       RegistrationPasswordChanged event, Emitter<RegistrationState> emit) {
     _logger.d('RegistrationBloc: Password changed');
-    // Optionally handle password changes for validation
   }
 
   void _onRegistrationSubmitted(
@@ -98,13 +106,21 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     _logger.i(
         'RegistrationBloc: RegistrationSubmitted with email: ${event.email}');
     try {
+      // Register the user in Firebase Auth
       final user = await _authRepository.registerWithEmail(
           event.email, event.password);
       if (user != null) {
+        // Create the user profile in Firestore
+        await _userRepository.createUser(
+          userId: user.uid,
+          email: event.email,
+          firstName: event.firstName,
+          lastName: event.lastName,
+        );
+
         emit(RegistrationSuccess(user: user));
         _logger.i(
             'RegistrationBloc: RegistrationSuccess emitted for user: ${user.email}');
-        // AuthBloc will automatically handle the authenticated state change
       } else {
         emit(const RegistrationFailure(
             error: 'Registration failed. Please try again.'));

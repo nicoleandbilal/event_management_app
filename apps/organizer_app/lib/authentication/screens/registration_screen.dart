@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
-import 'package:shared/authentication/login/login_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:shared/authentication/register/registration_bloc.dart';
 import 'package:shared/widgets/custom_label_input_box.dart';
-import 'package:shared/widgets/custom_label_input_box.dart';
+import 'package:shared/repositories/user_repository.dart';
 
 class RegistrationScreen extends StatefulWidget {
   final String? email;
@@ -54,6 +53,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     return BlocProvider(
       create: (context) => RegistrationBloc(
         authRepository: context.read<AuthRepository>(),
+        userRepository: context.read<UserRepository>(),
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -93,7 +93,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                             _createAccountText(),
                             _createAccountSubText(),
                             const SizedBox(height: 16),
-                            _nameFields(),  // Add first name and last name fields
+                            _nameFields(),
                             const SizedBox(height: 16),
                             CustomLabelInputBox(
                               labelText: 'Email Address',
@@ -152,7 +152,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // Welcome back subtext
+  // Subtext for creating an account
   Widget _createAccountSubText() {
     return const Padding(
       padding: EdgeInsets.all(14.0),
@@ -167,7 +167,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // Name fields (First Name and Last Name)
+  // First Name and Last Name fields in a single row
   Widget _nameFields() {
     return Row(
       children: [
@@ -179,7 +179,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
             obscureText: false,
           ),
         ),
-        const SizedBox(width: 16),  // Add space between first and last name fields
+        const SizedBox(width: 16), // Add space between the fields
         Expanded(
           child: CustomLabelInputBox(
             labelText: 'Last Name',
@@ -196,7 +196,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   Widget _registerButton() {
     return BlocBuilder<RegistrationBloc, RegistrationState>(
       builder: (context, state) {
-        if (state is LoginLoading) {
+        if (state is RegistrationLoading) {
           return const CircularProgressIndicator();
         }
 
@@ -214,7 +214,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               if (_passwordController.text != _confirmPasswordController.text) {
-                // Handle password mismatch error
+                // Show password mismatch error
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Passwords do not match')),
                 );
@@ -222,8 +222,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
               }
               context.read<RegistrationBloc>().add(
                     RegistrationSubmitted(
-                      _emailController.text.trim(),
-                      _passwordController.text.trim(),
+                      email: _emailController.text.trim(),
+                      password: _passwordController.text.trim(),
+                      firstName: _firstNameController.text.trim(),
+                      lastName: _lastNameController.text.trim(),
                     ),
                   );
             }
@@ -234,7 +236,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // "or" divider
+  // "or" divider between signup methods
   Widget _orDivider() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 10),
@@ -254,7 +256,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // Facebook login button
+  // Facebook signup button
   Widget _facebookSignUpButton() {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
@@ -269,13 +271,13 @@ class RegistrationScreenState extends State<RegistrationScreen> {
       ),
       icon: const Icon(Icons.facebook),
       onPressed: () {
-        // Handle Facebook login logic here
+        // Handle Facebook signup logic
       },
       label: const Text('Sign up with Facebook'),
     );
   }
 
-  // Loginnavigation button
+  // Navigate to login screen
   Widget _navigateToLogin() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -291,7 +293,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // Login error widget
+  // Registration error message
   Widget _registerError() {
     return BlocBuilder<RegistrationBloc, RegistrationState>(
       builder: (context, state) {

@@ -5,11 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';  // Your new router config file
 import 'package:organizer_app/config/app_theme.dart';
 import 'package:shared/repositories/event_repository.dart';
-import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
-import 'package:logger/logger.dart';
+import 'package:shared/repositories/user_repository.dart';  // Import UserRepository
 import 'package:shared/search/search_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
+import 'package:shared/authentication/auth/auth_bloc.dart';
+import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,14 +30,19 @@ class EventManagementApp extends StatelessWidget {
         RepositoryProvider<AuthRepository>(
           create: (context) => AuthRepository(),
         ),
+        RepositoryProvider<UserRepository>(
+          create: (context) => UserRepository(
+            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
+          ),
+        ),
         RepositoryProvider<SearchRepository>(
           create: (context) => SearchRepository(
-            firestore: FirebaseFirestore.instance, // Pass FirebaseFirestore instance
+            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
           ),
         ),
         RepositoryProvider<EventRepository>(
           create: (context) => EventRepository(
-            firestore: FirebaseFirestore.instance, // Pass FirebaseFirestore instance
+            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
           ),
         ),
       ],
