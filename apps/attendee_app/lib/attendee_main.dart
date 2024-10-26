@@ -1,4 +1,4 @@
-import 'package:attendee_app/config/app_theme.dart';
+import 'package:shared/config/app_theme.dart';
 import 'package:attendee_app/config/router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
