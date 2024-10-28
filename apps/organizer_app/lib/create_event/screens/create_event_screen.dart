@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
 import 'package:organizer_app/create_event/widgets/create_event_form.dart';
-import 'package:shared/repositories/event_repository.dart';
+import 'package:shared/events/event_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart'; // Add Firebase storage for uploading images
 
 class CreateEventScreen extends StatefulWidget {

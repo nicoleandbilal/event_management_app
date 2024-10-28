@@ -3,7 +3,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/create_event/screens/create_event_screen.dart';
 import 'package:organizer_app/event_list/event_list_screen.dart';
-import 'package:shared/event_list/event_listing/event_listing_screen.dart';
+import 'package:shared/events/event_individual_listing/event_listing_screen.dart';
 
 List<GoRoute> eventRoutes = [
     GoRoute(

@@ -5,13 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:organizer_app/main_and_navigation/main_navigation_bloc.dart';
 import 'package:organizer_app/main_and_navigation/navigation_routes.dart';          // Home routes
-import 'package:organizer_app/event_list/edit_event_details_screen.dart';
+import 'package:organizer_app/create_event/event_listing/edit_event_listing_screen.dart';
 import 'package:organizer_app/main_and_navigation/main_screen.dart';         // Main screen layout
 import 'package:organizer_app/widgets/error_dialog.dart';
 import 'package:organizer_app/create_event/screens/create_event_screen.dart'; // Create Event screen
 import 'package:shared/authentication/auth/auth_bloc.dart';
-import 'package:shared/event_list/event_listing/event_listing_screen.dart';
 import 'package:shared/authentication/auth_routes.dart';
+import 'package:shared/events/event_individual_listing/event_listing_screen.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {
   return GoRouter(

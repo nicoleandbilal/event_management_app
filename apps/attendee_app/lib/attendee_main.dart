@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
+import 'package:shared/events/event_repository.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
 import 'package:shared/search/search_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +24,17 @@ class EventManagementApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider(
-      create: (context) => AuthRepository(),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<AuthRepository>(
+          create: (context) => AuthRepository(),
+        ),
+        RepositoryProvider<EventRepository>(
+          create: (context) => EventRepository(
+            firestore: FirebaseFirestore.instance,
+          ),
+        ),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
@@ -46,7 +55,7 @@ class EventManagementApp extends StatelessWidget {
             _logger.d('Main AuthBloc state changed to: $state');
             return MaterialApp.router(
               title: 'Event Management App',
-              debugShowCheckedModeBanner: false, // Set this to false
+              debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               routerConfig: createGoRouter(context, state),
             );

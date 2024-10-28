@@ -9,6 +9,9 @@ import 'package:attendee_app/main_and_navigation/main_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:shared/events/event_individual_listing/bloc/event_listing_bloc.dart';
+import 'package:shared/events/event_individual_listing/event_listing_screen.dart';
+import 'package:shared/events/event_repository.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {
   return GoRouter(
@@ -44,19 +47,28 @@ GoRouter createGoRouter(BuildContext context, AuthState authState) {
         ],
       ),
       
+      GoRoute(
+        path: '/event_listing/:id',
+        builder: (context, state) {
+          final String eventId = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => EventListingBloc(
+              context.read<EventRepository>(),  // Provide EventRepository as positional argument
+            ),
+            child: EventListingScreen(eventId: eventId),
+          );
+        },
+      ),
+
+
       /*
+          
       // Full-screen routes (not wrapped with MainScreen)
       GoRoute(
         path: '/create_event',
         builder: (context, state) => const CreateEventScreen(),  // Full-screen create event
       ),
-      GoRoute(
-        path: '/event_listing/:id',  // Event details screen (full-screen)
-        builder: (context, state) {
-          final String eventId = state.pathParameters['id']!;
-          return EventListingScreen(eventId: eventId);  // Pass event ID
-        },
-      ),
+
       GoRoute(
         path: '/edit_event/:id',  // Edit event screen (full-screen)
         builder: (context, state) {

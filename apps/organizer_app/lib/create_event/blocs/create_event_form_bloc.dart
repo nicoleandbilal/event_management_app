@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:shared/events/event_repository.dart';
 import 'dart:io';
-import 'package:shared/repositories/event_repository.dart';
 
 class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormState> {
   final EventRepository eventRepository; // Refactor to use EventRepository

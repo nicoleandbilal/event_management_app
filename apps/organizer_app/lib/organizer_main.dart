@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';  // Your new router config file
 import 'package:shared/config/app_theme.dart';
-import 'package:shared/repositories/event_repository.dart';
+import 'package:shared/events/event_repository.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:shared/repositories/user_repository.dart';  // Import UserRepository
 import 'package:shared/search/search_repository.dart';

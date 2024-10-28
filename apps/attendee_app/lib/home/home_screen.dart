@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared/events/event_individual_listing/bloc/event_listing_bloc.dart';
 import 'package:shared/events/event_repository.dart';
-import 'package:shared/widgets/custom_padding_button.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
 import 'package:shared/events/event_list/event_list.dart';
 
-class EventListScreen extends StatelessWidget {
-  const EventListScreen({super.key});
+
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

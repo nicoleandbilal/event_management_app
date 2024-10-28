@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared/event_list/event_listing/bloc/event_listing_bloc.dart';
+import 'package:shared/events/event_individual_listing/bloc/event_listing_bloc.dart';
 import 'package:shared/models/event_model.dart';
-import 'package:shared/repositories/event_repository.dart';
+import 'package:shared/events/event_repository.dart';
 import 'package:shared/utils/date_and_time_formatter.dart';
 
 class EventListingScreen extends StatelessWidget {

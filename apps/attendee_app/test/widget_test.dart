@@ -1,4 +1,4 @@
-import 'package:attendee_app/screens/home/home_screen.dart';
+import 'package:attendee_app/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
