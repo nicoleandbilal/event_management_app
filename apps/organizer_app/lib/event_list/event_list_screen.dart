@@ -38,6 +38,11 @@ class EventListScreen extends StatelessWidget {
           ),
         ),
         const Divider(height: 1, color: Colors.grey),
+
+        // Buttons for Drafts, Current and Past
+
+
+
         const Expanded(
           child: EventList(),  // Display the event list here
         ),
