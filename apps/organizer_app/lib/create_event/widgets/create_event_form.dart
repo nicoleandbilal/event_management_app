@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateEventForm extends StatefulWidget {
+  
   const CreateEventForm({super.key});
 
   @override
@@ -106,6 +107,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                
                 _buildTextInput(
                   'Event Name',
                   'Enter event name',

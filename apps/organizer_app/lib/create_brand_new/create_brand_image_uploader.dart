@@ -3,24 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
-import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
-import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
-import 'package:organizer_app/create_event/event_image_upload_service.dart';
+import 'package:organizer_app/create_brand_new/blocs/create_brand_form_bloc.dart';
+import 'package:organizer_app/create_brand_new/blocs/create_brand_form_event.dart';
+import 'package:organizer_app/create_brand_new/blocs/create_brand_form_state.dart';
+import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
 
-class CreateEventImageUpload extends StatefulWidget {
+class CreateBrandImageUpload extends StatefulWidget {
   final ImageUploadService imageUploadService;
 
-  const CreateEventImageUpload({
+  const CreateBrandImageUpload({
     super.key, 
     required this.imageUploadService
     });
 
   @override
-  CreateEventImageUploadState createState() => CreateEventImageUploadState();
+  CreateBrandImageUploadState createState() => CreateBrandImageUploadState();
 }
 
-class CreateEventImageUploadState extends State<CreateEventImageUpload> {
+class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
   final ImagePicker _picker = ImagePicker();
   File? _fullImageFile;
   File? _croppedImageFile;
@@ -33,7 +33,6 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
         maxWidth: 1920,
         maxHeight: 1080,
       );
-
       if (pickedFile == null) return;
 
       final File imageFile = File(pickedFile.path);
@@ -90,7 +89,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
 
       // Dispatch both URLs in a single event
       if (fullImageUrl != null && croppedImageUrl != null && mounted) {
-        context.read<CreateEventFormBloc>().add(UpdateImageUrls(
+        context.read<CreateBrandFormBloc>().add(UpdateImageUrls(
           fullImageUrl: fullImageUrl,
           croppedImageUrl: croppedImageUrl,
         ));
@@ -110,7 +109,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
   }
 
   void _deleteImages(BuildContext context) {
-    context.read<CreateEventFormBloc>().add(const DeleteImageUrls());
+    context.read<CreateBrandFormBloc>().add(const DeleteImageUrls());
     setState(() {
       _fullImageFile = null;
       _croppedImageFile = null;
@@ -126,7 +125,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CreateEventFormBloc, CreateEventFormState>(
+    return BlocBuilder<CreateBrandFormBloc, CreateBrandFormState>(
       builder: (context, state) {
         if (_isUploading) {
           return const Center(child: CircularProgressIndicator());

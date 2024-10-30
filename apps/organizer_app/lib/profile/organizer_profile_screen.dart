@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/create_brand/repositories/brand_repository.dart';
+import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
 
 class OrganizerProfileScreen extends StatelessWidget {

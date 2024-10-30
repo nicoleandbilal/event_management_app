@@ -28,7 +28,10 @@ class CreateEventFormImageUrlsUpdated extends CreateEventFormState {
   final String? fullImageUrl;
   final String? croppedImageUrl;
 
-  const CreateEventFormImageUrlsUpdated({this.fullImageUrl, this.croppedImageUrl});
+  const CreateEventFormImageUrlsUpdated({
+    this.fullImageUrl, 
+    this.croppedImageUrl
+    });
 
   @override
   List<Object?> get props => [fullImageUrl, croppedImageUrl];

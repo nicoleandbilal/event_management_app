@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:organizer_app/create_event/repositories/image_upload_service.dart';
+import 'package:organizer_app/create_event/event_image_upload_service.dart';
 import 'package:shared/events/event_repository.dart';
 import 'create_event_form_event.dart';
 import 'create_event_form_state.dart';
@@ -8,7 +8,9 @@ class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormStat
   final EventRepository eventRepository;
   final ImageUploadService imageUploadService;
 
-  CreateEventFormBloc(this.eventRepository, this.imageUploadService) : super(CreateEventFormInitial()) {
+  CreateEventFormBloc(
+    this.eventRepository, 
+    this.imageUploadService) : super(CreateEventFormInitial()) {
     on<SubmitCreateEventForm>(_onSubmitCreateEventForm);
     on<UpdateImageUrls>(_onUpdateImageUrls);
     on<DeleteImageUrls>(_onDeleteImageUrls);

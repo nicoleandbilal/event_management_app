@@ -4,7 +4,7 @@ abstract class CreateBrandFormState extends Equatable {
   const CreateBrandFormState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class CreateBrandFormInitial extends CreateBrandFormState {}
@@ -19,30 +19,20 @@ class CreateBrandFormFailure extends CreateBrandFormState {
   const CreateBrandFormFailure(this.error);
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [error];
 }
 
 class CreateBrandFormImageUploading extends CreateBrandFormState {}
 
 class CreateBrandFormImageUrlsUpdated extends CreateBrandFormState {
-  final String fullImageUrl;
-  final String croppedImageUrl;
+  final String? fullImageUrl;
+  final String? croppedImageUrl;
 
   const CreateBrandFormImageUrlsUpdated({
-    required this.fullImageUrl,
-    required this.croppedImageUrl,
+    this.fullImageUrl,
+    this.croppedImageUrl,
   });
 
   @override
-  List<Object> get props => [fullImageUrl, croppedImageUrl];
-}
-
-// New State for Image Upload Failure
-class CreateBrandFormImageUploadFailed extends CreateBrandFormState {
-  final String errorMessage;
-
-  const CreateBrandFormImageUploadFailed(this.errorMessage);
-
-  @override
-  List<Object> get props => [errorMessage];
+  List<Object?> get props => [fullImageUrl, croppedImageUrl];
 }

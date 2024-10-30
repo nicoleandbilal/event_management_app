@@ -6,6 +6,23 @@ class BrandRepository {
 
   BrandRepository({required this.firestore});
 
+  // Fetch event details from Firestore using eventId
+  Future<Brand> getBrandDetails(String brandId) async {
+    try {
+      // Retrieve event document by ID
+      final DocumentSnapshot doc =
+          await firestore.collection('brands').doc(brandId).get();
+      if (doc.exists) {
+        // Convert the Firestore document into an Event model using fromDocument
+        return Brand.fromDocument(doc);
+      } else {
+        throw Exception('Event not found');
+      }
+    } catch (e) {
+      throw Exception('Error fetching brand details: $e');
+    }
+  }
+
   Future<void> submitBrand(Brand brand) async {
     try {
       await firestore.collection('brands').add({
@@ -13,6 +30,7 @@ class BrandRepository {
         'brandLogoImageFullUrl': brand.brandLogoImageFullUrl,
         'brandLogoImageCroppedUrl': brand.brandLogoImageCroppedUrl,
         'category': brand.category,
+        'brandDescription': brand.brandDescription,
         'teamMembers': brand.teamMembers,
         'createdAt': brand.createdAt,
         'updatedAt': brand.updatedAt,
