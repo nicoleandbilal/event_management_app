@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';  // Your new router config file
+import 'package:organizer_app/create_brand/repositories/brand_repository.dart';
 import 'package:shared/config/app_theme.dart';
 import 'package:shared/events/event_repository.dart';
 import 'package:shared/repositories/auth_repository.dart';
@@ -42,6 +43,11 @@ class EventManagementApp extends StatelessWidget {
         ),
         RepositoryProvider<EventRepository>(
           create: (context) => EventRepository(
+            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
+          ),
+        ),
+        RepositoryProvider<BrandRepository>(
+          create: (context) => BrandRepository(
             firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
           ),
         ),

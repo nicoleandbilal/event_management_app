@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
-import 'package:organizer_app/create_event/repositories/image_repository.dart';
+import 'package:organizer_app/create_event/repositories/image_upload_service.dart';
 
 class CreateEventImageUpload extends StatefulWidget {
-  final TextEditingController urlController;
+  final ImageUploadService imageUploadService;
 
-  const CreateEventImageUpload({required this.urlController, super.key});
+  const CreateEventImageUpload({Key? key, required this.imageUploadService}) : super(key: key);
 
   @override
   CreateEventImageUploadState createState() => CreateEventImageUploadState();
@@ -23,23 +23,18 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
   File? _croppedImageFile;
   bool _isUploading = false;
 
-  final ImageRepository _imageRepository = ImageRepository();
-
   Future<void> _pickAndCropImage(BuildContext context) async {
     try {
-      // Pick image
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1920,  // Limit initial image size
+        maxWidth: 1920,
         maxHeight: 1080,
       );
 
       if (pickedFile == null) return;
 
-      // Convert XFile to File
-      File imageFile = File(pickedFile.path);
-      
-      // Crop image using updated configuration
+      final File imageFile = File(pickedFile.path);
+
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
         aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 9),
@@ -54,13 +49,10 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.ratio16x9,
             lockAspectRatio: true,
-            hideBottomControls: false,
           ),
           IOSUiSettings(
             title: 'Crop Image',
             aspectRatioLockEnabled: true,
-            resetAspectRatioEnabled: false,
-            aspectRatioPickerButtonHidden: true,
           ),
         ],
       );
@@ -70,16 +62,10 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
           _fullImageFile = imageFile;
           _croppedImageFile = File(croppedFile.path);
         });
-
         await _uploadImages(context);
       }
     } catch (e) {
-      if (!mounted) return;
-      
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error picking or cropping image: $e'),
-        backgroundColor: Colors.red,
-      ));
+      _showError(context, 'Error selecting or cropping image: $e');
     }
   }
 
@@ -91,40 +77,48 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
     });
 
     try {
-      final fullImagePath = 'event_images/${DateTime.now().millisecondsSinceEpoch}_full.jpg';
-      final croppedImagePath = 'event_images/${DateTime.now().millisecondsSinceEpoch}_cropped.jpg';
-
-      // Compress images before uploading
-      final compressedFullImage = await _imageRepository.compressImage(_fullImageFile!);
-      final compressedCroppedImage = await _imageRepository.compressImage(_croppedImageFile!);
-
-      final urls = await _imageRepository.uploadFullAndCroppedImage(
-        fullImageFile: compressedFullImage,
-        croppedImageFile: compressedCroppedImage,
-        fullImagePath: fullImagePath,
-        croppedImagePath: croppedImagePath,
+      final urls = await widget.imageUploadService.uploadFullAndCroppedImages(
+        _fullImageFile!,
+        _croppedImageFile!,
       );
 
-      if (!mounted) return;
+      final fullImageUrl = urls['fullImageUrl'];
+      final croppedImageUrl = urls['croppedImageUrl'];
 
-      widget.urlController.text = urls['eventCoverImageCroppedUrl']!;
-      context.read<CreateEventFormBloc>().add(UpdateCreateEventImageUrl(urls['eventCoverImageCroppedUrl']!));
+      // Dispatch both URLs in a single event
+      if (fullImageUrl != null && croppedImageUrl != null && mounted) {
+        context.read<CreateEventFormBloc>().add(UpdateImageUrls(
+          fullImageUrl: fullImageUrl,
+          croppedImageUrl: croppedImageUrl,
+        ));
+      } else {
+        throw Exception("Image URLs missing after upload.");
+      }
 
       setState(() {
         _isUploading = false;
       });
     } catch (e) {
-      if (!mounted) return;
-
       setState(() {
         _isUploading = false;
       });
-      
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error uploading image: $e'),
-        backgroundColor: Colors.red,
-      ));
+      _showError(context, 'Error uploading images: $e');
     }
+  }
+
+  void _deleteImages(BuildContext context) {
+    context.read<CreateEventFormBloc>().add(const DeleteImageUrls());
+    setState(() {
+      _fullImageFile = null;
+      _croppedImageFile = null;
+    });
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    ));
   }
 
   @override
@@ -147,14 +141,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
                 right: 8,
                 child: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    context.read<CreateEventFormBloc>().add(const DeleteCreateEventImage());
-                    setState(() {
-                      _croppedImageFile = null;
-                      _fullImageFile = null;
-                      widget.urlController.clear();
-                    });
-                  },
+                  onPressed: () => _deleteImages(context),
                 ),
               ),
             ],

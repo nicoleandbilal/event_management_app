@@ -1,49 +1,65 @@
-// create_event_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
+import 'package:organizer_app/create_event/repositories/image_repository.dart';
+import 'package:organizer_app/create_event/repositories/image_upload_service.dart';
 import 'package:organizer_app/create_event/widgets/create_event_form.dart';
 import 'package:shared/events/event_repository.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Add Firebase storage for uploading images
 
-class CreateEventScreen extends StatefulWidget {
+class CreateEventScreen extends StatelessWidget {
   const CreateEventScreen({super.key});
 
   @override
-  CreateEventScreenState createState() => CreateEventScreenState();
-}
-
-class CreateEventScreenState extends State<CreateEventScreen> {
-  @override
   Widget build(BuildContext context) {
-    // Ensure that CreateEventRepository is provided in the context
-    final createEventRepository = RepositoryProvider.of<EventRepository>(context);
-    final firebaseStorage = FirebaseStorage.instance;  // Add FirebaseStorage instance
-
-    return BlocProvider(
-      create: (context) => CreateEventFormBloc(createEventRepository, firebaseStorage),
-      child: BlocListener<CreateEventFormBloc, CreateEventFormState>(
-        listener: (context, state) {
-          if (state is CreateEventFormSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Event created successfully!')),
-            );
-          
-            // Instead of popping, navigate to a specific screen, such as home or event list
-            context.go('/events');  // Assuming '/favorites' is the route to the next screen
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Create Event'),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<EventRepository>(
+          create: (context) => EventRepository(
+            firestore: FirebaseFirestore.instance,
           ),
-          body: const Padding(
-            padding: EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: CreateEventForm(), // The form widget for creating an event
+        ),
+        RepositoryProvider<ImageRepository>(
+          create: (context) => ImageRepository(
+            storage: FirebaseStorage.instance,
+          ),
+        ),
+        RepositoryProvider<ImageUploadService>(
+          create: (context) => ImageUploadService(
+            RepositoryProvider.of<ImageRepository>(context),
+          ),
+        ),
+      ],
+      child: BlocProvider(
+        create: (context) => CreateEventFormBloc(
+          RepositoryProvider.of<EventRepository>(context),
+          RepositoryProvider.of<ImageUploadService>(context),
+        ),
+        child: BlocListener<CreateEventFormBloc, CreateEventFormState>(
+          listener: (context, state) {
+            if (state is CreateEventFormSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Event created successfully!')),
+              );
+              context.go('/events');
+            } else if (state is CreateEventFormFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: ${state.error}')),
+              );
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Create Event'),
+            ),
+            body: const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: SingleChildScrollView(
+                child: CreateEventForm(),
+              ),
             ),
           ),
         ),

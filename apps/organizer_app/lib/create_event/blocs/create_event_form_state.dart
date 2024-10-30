@@ -4,7 +4,7 @@ abstract class CreateEventFormState extends Equatable {
   const CreateEventFormState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class CreateEventFormInitial extends CreateEventFormState {}
@@ -19,18 +19,17 @@ class CreateEventFormFailure extends CreateEventFormState {
   const CreateEventFormFailure(this.error);
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [error];
 }
 
-// Image uploading state
 class CreateEventFormImageUploading extends CreateEventFormState {}
 
-// Image uploaded state
-class CreateEventFormImageUploaded extends CreateEventFormState {
-  final String imageUrl;
+class CreateEventFormImageUrlsUpdated extends CreateEventFormState {
+  final String? fullImageUrl;
+  final String? croppedImageUrl;
 
-  const CreateEventFormImageUploaded(this.imageUrl);
+  const CreateEventFormImageUrlsUpdated({this.fullImageUrl, this.croppedImageUrl});
 
   @override
-  List<Object> get props => [imageUrl];
+  List<Object?> get props => [fullImageUrl, croppedImageUrl];
 }

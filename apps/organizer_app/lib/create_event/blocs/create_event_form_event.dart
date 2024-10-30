@@ -3,9 +3,6 @@ import 'package:shared/models/event_model.dart';
 
 abstract class CreateEventFormEvent extends Equatable {
   const CreateEventFormEvent();
-
-  @override
-  List<Object?> get props => [];
 }
 
 class SubmitCreateEventForm extends CreateEventFormEvent {
@@ -17,19 +14,18 @@ class SubmitCreateEventForm extends CreateEventFormEvent {
   List<Object?> get props => [event];
 }
 
-// Event to update the event image URL
-class UpdateCreateEventImageUrl extends CreateEventFormEvent {
-  final String imageUrl;
+class UpdateImageUrls extends CreateEventFormEvent {
+  final String fullImageUrl;
+  final String croppedImageUrl;
 
-  const UpdateCreateEventImageUrl(this.imageUrl);
+  const UpdateImageUrls({required this.fullImageUrl, required this.croppedImageUrl});
 
   @override
-  List<Object?> get props => [imageUrl];
+  List<Object?> get props => [fullImageUrl, croppedImageUrl];
 }
 
-// NEW: Event to handle image deletion
-class DeleteCreateEventImage extends CreateEventFormEvent {
-  const DeleteCreateEventImage();
+class DeleteImageUrls extends CreateEventFormEvent {
+  const DeleteImageUrls();
 
   @override
   List<Object?> get props => [];

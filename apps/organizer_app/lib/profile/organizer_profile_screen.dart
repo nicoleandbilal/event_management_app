@@ -1,13 +1,13 @@
+// profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/events/event_repository.dart';
+import 'package:organizer_app/create_brand/repositories/brand_repository.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
-import 'package:shared/events/event_list/event_list.dart';
 
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class OrganizerProfileScreen extends StatelessWidget {
+  const OrganizerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +18,14 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: CustomPaddingButton(
             onPressed: () {
-              // Use GoRouter to navigate to the full-screen CreateEventScreen
+              // Ensure BrandRepository is available in the context
+              final brandRepository = context.read<BrandRepository>();
               context.push(
-                '/create_event', // Navigate to the full-screen CreateEventScreen
-                extra: context.read<EventRepository>(), // Pass repository using 'extra'
+                '/create_brand',
+                extra: brandRepository,
               );
             },
-            label: 'Create New Event',
+            label: 'Create New Brand',
             style: ElevatedButton.styleFrom(
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -38,9 +39,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         const Divider(height: 1, color: Colors.grey),
-        const Expanded(
-          child: EventList(),  // Display the event list here
-        ),
       ],
     );
   }

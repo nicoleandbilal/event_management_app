@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-class ImageRepository {
+class BrandLogoImageRepository {
   final FirebaseStorage _storage;
 
-  ImageRepository({FirebaseStorage? storage})
+  BrandLogoImageRepository({FirebaseStorage? storage})
       : _storage = storage ?? FirebaseStorage.instance;
 
   Future<File> compressImage(File imageFile) async {
@@ -15,6 +15,7 @@ class ImageRepository {
         '${imageFile.absolute.path}_compressed.jpg',
         quality: 80,
       );
+
       return compressedXFile == null ? imageFile : File(compressedXFile.path);
     } catch (e) {
       throw Exception('Image compression failed: $e');
@@ -29,5 +30,19 @@ class ImageRepository {
     } catch (e) {
       throw Exception('Image upload failed: $e');
     }
+  }
+
+  Future<Map<String, String>> uploadFullAndCroppedImage({
+    required File fullImageFile,
+    required File croppedImageFile,
+    required String fullImagePath,
+    required String croppedImagePath,
+  }) async {
+    final fullUrl = await uploadImage(fullImageFile, fullImagePath);
+    final croppedUrl = await uploadImage(croppedImageFile, croppedImagePath);
+    return {
+      'brandLogoImageFullUrl': fullUrl,
+      'brandLogoImageCroppedUrl': croppedUrl,
+    };
   }
 }
