@@ -2,15 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:organizer_app/config/router.dart';  // Your new router config file
+import 'package:organizer_app/config/router.dart';
 import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/config/app_theme.dart';
 import 'package:shared/events/event_repository.dart';
 import 'package:shared/repositories/auth_repository.dart';
-import 'package:shared/repositories/user_repository.dart';  // Import UserRepository
+import 'package:shared/repositories/user_repository.dart';
 import 'package:shared/search/search_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
+import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:logger/logger.dart';
 
 void main() async {
@@ -31,24 +32,29 @@ class EventManagementApp extends StatelessWidget {
         RepositoryProvider<AuthRepository>(
           create: (context) => AuthRepository(),
         ),
+        RepositoryProvider<AuthService>(
+          create: (context) => AuthService(
+            context.read<AuthRepository>(), // Pass the required AuthRepository instance
+          ),
+        ),
         RepositoryProvider<UserRepository>(
           create: (context) => UserRepository(
-            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
+            firestore: FirebaseFirestore.instance,
           ),
         ),
         RepositoryProvider<SearchRepository>(
           create: (context) => SearchRepository(
-            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
+            firestore: FirebaseFirestore.instance,
           ),
         ),
         RepositoryProvider<EventRepository>(
           create: (context) => EventRepository(
-            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
+            firestore: FirebaseFirestore.instance,
           ),
         ),
         RepositoryProvider<BrandRepository>(
           create: (context) => BrandRepository(
-            firestore: FirebaseFirestore.instance,  // Inject FirebaseFirestore instance
+            firestore: FirebaseFirestore.instance,
           ),
         ),
       ],
@@ -70,9 +76,9 @@ class EventManagementApp extends StatelessWidget {
             _logger.d('AuthBloc state changed to: $state');
             return MaterialApp.router(
               title: 'Event Management App',
-              debugShowCheckedModeBanner: false,  // Hide the debug banner
-              theme: AppTheme.lightTheme,         // Use the light theme
-              routerConfig: createGoRouter(context, state),  // Use the new GoRouter configuration
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              routerConfig: createGoRouter(context, state),
             );
           },
         ),

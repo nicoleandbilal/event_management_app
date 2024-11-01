@@ -9,6 +9,7 @@ class Brand {
   final String? brandLogoImageFullUrl;
   final String? brandLogoImageCroppedUrl;
   final String category; // e.g., Entertainment, Corporate, etc.
+  final String? status; // e.g. draft, live, archived
   final String? brandDescription;
   final List<String> teamMembers; // List of user IDs that manage this brand
   final Timestamp createdAt;
@@ -21,6 +22,7 @@ class Brand {
     this.brandLogoImageFullUrl,
     this.brandLogoImageCroppedUrl,
     required this.category,
+    required this.status,
     this.brandDescription,
     required this.teamMembers,
     required this.createdAt,
@@ -37,6 +39,7 @@ class Brand {
       brandLogoImageFullUrl: data['brandLogoImageFullUrl'],
       brandLogoImageCroppedUrl: data['brandLogoImageCroppedUrl'],
       category: data['category'] ?? 'Other',
+      status: data['status'] ?? 'draft',
       brandDescription: data['brandDescription'],
       teamMembers: List<String>.from(data['teamMembers'] ?? []),
       createdAt: data['createdAt'] ?? Timestamp.now(),
@@ -52,6 +55,7 @@ class Brand {
       'brandLogoImageFullUrl': brandLogoImageFullUrl,
       'brandLogoImageCroppedUrl': brandLogoImageCroppedUrl,
       'category': category,
+      'status': status,
       'brandDescription': brandDescription,
       'teamMembers': teamMembers,
       'createdAt': createdAt,

@@ -7,12 +7,12 @@ class CustomLabelInputBox extends StatelessWidget {
   final bool obscureText;
 
   const CustomLabelInputBox({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.validationMessage,
     required this.controller,
     this.obscureText = false, // Default value for obscureText is false
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,5 @@
+// brand_image_upload_service.dart
+
 import 'dart:io';
 import 'package:shared/repositories/image_repository.dart';
 
@@ -7,10 +9,10 @@ class ImageUploadService {
 
   ImageUploadService(this._imageRepository);
 
-  Future<Map<String, String?>> uploadFullAndCroppedImages(File fullImage, File croppedImage) async {
+  Future<Map<String, String?>> uploadFullAndCroppedImages(File fullImage, File croppedImage, String brandId) async {
     try {
-      final fullImagePath = 'brands/brand_logo/${DateTime.now().millisecondsSinceEpoch}_full.jpg';
-      final croppedImagePath = 'brands/brand_logo/${DateTime.now().millisecondsSinceEpoch}_cropped.jpg';
+      final fullImagePath = 'brands/$brandId/brand_logo/${DateTime.now().millisecondsSinceEpoch}_full.jpg';
+      final croppedImagePath = 'brands/$brandId/brand_logo/${DateTime.now().millisecondsSinceEpoch}_cropped.jpg';
 
       // Upload full image
       final fullUrl = await _imageRepository.uploadImage(

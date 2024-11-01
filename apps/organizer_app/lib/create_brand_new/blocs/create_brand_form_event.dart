@@ -1,3 +1,5 @@
+// create_brand_form_event.dart
+
 import 'package:equatable/equatable.dart';
 import 'package:shared/models/brand_model.dart';
 
@@ -5,7 +7,14 @@ abstract class CreateBrandFormEvent extends Equatable {
   const CreateBrandFormEvent();
 }
 
-// Event to submit the form with brand details
+class CreateDraftBrand extends CreateBrandFormEvent {
+  final Brand brand;
+  const CreateDraftBrand(this.brand);
+
+  @override
+  List<Object?> get props => [brand];
+}
+
 class SubmitCreateBrandForm extends CreateBrandFormEvent {
   final Brand brand;
   const SubmitCreateBrandForm(this.brand);

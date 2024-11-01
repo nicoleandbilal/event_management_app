@@ -11,7 +11,7 @@ class Event {
   final String venue;
   final String? eventCoverImageFullUrl;
   final String? eventCoverImageCroppedUrl;
-  final String? status; // e.g., draft, live, canceled
+  final String? status; // e.g., draft, live, past, canceled
   final Timestamp createdAt;
   final Timestamp? updatedAt;
   final Timestamp? saleStartDate; // When ticket sales start

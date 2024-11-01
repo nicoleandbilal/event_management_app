@@ -1,3 +1,5 @@
+// create_brand_image_uploader.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,10 +12,12 @@ import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
 
 class CreateBrandImageUpload extends StatefulWidget {
   final ImageUploadService imageUploadService;
+  final String brandId;
 
   const CreateBrandImageUpload({
     super.key, 
-    required this.imageUploadService
+    required this.imageUploadService,
+    required this.brandId,
     });
 
   @override
@@ -26,7 +30,7 @@ class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
   File? _croppedImageFile;
   bool _isUploading = false;
 
-  Future<void> _pickAndCropImage(BuildContext context) async {
+  Future<void> _pickAndCropImage(BuildContext context, brandId) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -64,14 +68,14 @@ class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
           _fullImageFile = imageFile;
           _croppedImageFile = File(croppedFile.path);
         });
-        await _uploadImages(context);
+        await _uploadImages(context, widget.brandId);
       }
     } catch (e) {
       _showError(context, 'Error selecting or cropping image: $e');
     }
   }
 
-  Future<void> _uploadImages(BuildContext context) async {
+  Future<void> _uploadImages(BuildContext context, String brandId) async {
     if (_fullImageFile == null || _croppedImageFile == null) return;
 
     setState(() {
@@ -82,6 +86,7 @@ class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
       final urls = await widget.imageUploadService.uploadFullAndCroppedImages(
         _fullImageFile!,
         _croppedImageFile!,
+        widget.brandId,
       );
 
       final fullImageUrl = urls['fullImageUrl'];
@@ -150,7 +155,7 @@ class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
           );
         } else {
           return GestureDetector(
-            onTap: () => _pickAndCropImage(context),
+            onTap: () => _pickAndCropImage(context, widget.brandId),
             child: Container(
               width: double.infinity,
               height: 200,
