@@ -18,9 +18,12 @@ class EventListScreen extends StatefulWidget {
 }
 
 class EventListScreenState extends State<EventListScreen> {
+  String? selectedBrandId; // Store selected brand ID
+
   // Callback to filter events when a brand is selected.
   void _onBrandSelected(String brandId) {
     print("Brand selected: $brandId"); // Debugging print statement
+    selectedBrandId = brandId; // Store the selected brand ID
     context.read<EventFilterBloc>().add(FilterEventsByBrand(brandId: brandId));
   }
 
@@ -51,14 +54,32 @@ class EventListScreenState extends State<EventListScreen> {
             padding: const EdgeInsets.all(16.0),
             child: CustomPaddingButton(
               onPressed: () {
-                print("Navigating to create event screen"); // Debugging print statement
-                context.push(
-                  '/create_event',
-                  extra: {
-                    'eventRepository': eventRepository,
-                    'authService': authService,
-                  },
-                );
+                if (selectedBrandId == null || selectedBrandId!.isEmpty) {
+                  print("Error: No brand selected.");
+                  // Display a dialog or a snackbar to inform the user
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Error'),
+                      content: const Text('Please select a brand before creating an event.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  print("Navigating to create event screen for brandId: $selectedBrandId");
+                  context.push(
+                    '/create_event/$selectedBrandId',
+                    extra: {
+                      'eventRepository': eventRepository,
+                      'authService': authService,
+                    },
+                  );
+                }
               },
               label: 'Create New Event',
               style: ElevatedButton.styleFrom(
