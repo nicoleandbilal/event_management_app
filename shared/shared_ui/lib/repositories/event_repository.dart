@@ -75,4 +75,39 @@ class EventRepository {
       throw Exception('Error fetching events by status: $e');
     }
   }
+
+  // Fetch events by brand and status
+  Future<List<Event>> getEventsByBrandAndStatus({
+    required String brandId,
+    required String? status,
+  }) async {
+    try {
+      final querySnapshot = await firestore
+          .collection('events')
+          .where('brandId', isEqualTo: brandId)
+          .where('status', isEqualTo: status)
+          .get();
+
+      return querySnapshot.docs.map((doc) => Event.fromDocument(doc)).toList();
+    } catch (e) {
+      throw Exception('Error fetching events by brand and status: $e');
+    }
+  }
+
+// Fetch events across multiple brands with an optional status filter
+  Future<List<Event>> getEventsForAllUserBrands(
+      List<String> brandIds, String? status) async {
+    try {
+      var query = firestore.collection('events').where('brandId', whereIn: brandIds);
+      
+      if (status != null) {
+        query = query.where('status', isEqualTo: status);
+      }
+
+      final querySnapshot = await query.get();
+      return querySnapshot.docs.map((doc) => Event.fromDocument(doc)).toList();
+    } catch (e) {
+      throw Exception('Error fetching events for all user brands: $e');
+    }
+  }
 }

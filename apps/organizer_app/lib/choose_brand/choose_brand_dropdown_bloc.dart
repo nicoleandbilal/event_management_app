@@ -26,6 +26,7 @@ class ChooseBrandDropdownBloc extends Bloc<ChooseBrandDropdownEvent, ChooseBrand
       
       // Fetch the brands by IDs from the repository
       final brands = await brandRepository.getBrandsByIds(event.brandIds);
+
       print('Fetched brands: ${brands.map((b) => b.brandName).toList()}');
 
       emit(state.copyWith(brands: brands, loading: false));

@@ -6,7 +6,7 @@ import 'package:shared/widgets/custom_input_box.dart';
 import 'choose_brand_dropdown_bloc.dart';
 
 class ChooseBrandDropdown extends StatefulWidget {
-  final void Function(String brandId) onBrandSelected;
+  final void Function(List<String> brandIds) onBrandSelected; // List of brand IDs
 
   const ChooseBrandDropdown({
     super.key,
@@ -19,6 +19,7 @@ class ChooseBrandDropdown extends StatefulWidget {
 
 class _ChooseBrandDropdownState extends State<ChooseBrandDropdown> {
   String? _selectedBrand;
+  List<String> userBrandIds = [];
 
   @override
   void initState() {
@@ -26,36 +27,26 @@ class _ChooseBrandDropdownState extends State<ChooseBrandDropdown> {
     _loadUserBrands();
   }
 
-Future<void> _loadUserBrands() async {
-  try {
-    // Retrieve the user ID from AuthService
-    final userId = context.read<AuthService>().getCurrentUserId();
-    print("User ID from AuthService: $userId");
-    
-    if (userId == null) {
-      print("Error: User is not authenticated.");
-      throw Exception("User is not authenticated.");
+  Future<void> _loadUserBrands() async {
+    try {
+      final userId = context.read<AuthService>().getCurrentUserId();
+      
+      if (userId == null) {
+        throw Exception("User is not authenticated.");
+      }
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (userDoc.exists) {
+        userBrandIds = List<String>.from(userDoc['brandIds'] ?? []);
+        context.read<ChooseBrandDropdownBloc>().add(LoadUserBrands(userBrandIds));
+      } else {
+        throw Exception("User document does not exist.");
+      }
+    } catch (e) {
+      print("Error in _loadUserBrands: $e");
     }
-
-    // Fetch the user's document from Firestore
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    print("Fetched user document: ${userDoc.data()}");
-
-    // Check if the user document exists and extract brand IDs
-    if (userDoc.exists) {
-      final List<String> brandIds = List<String>.from(userDoc['brandIds'] ?? []);
-      print("Extracted brand IDs: $brandIds");
-
-      // Trigger loading brands by IDs in the BLoC
-      context.read<ChooseBrandDropdownBloc>().add(LoadUserBrands(brandIds));
-      print("LoadUserBrands event dispatched with brand IDs.");
-    } else {
-      print("Error: User document does not exist.");
-    }
-  } catch (e) {
-    print("Error in _loadUserBrands: $e");
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -74,31 +65,37 @@ Future<void> _loadUserBrands() async {
             } else if (state.error != null) {
               return Text('Error loading brands: ${state.error}');
             } else if (state.brands.isEmpty) {
-              print('No brands found for user');
               return const Text('No brands available.');
             }
 
-            print('Displaying ${state.brands.length} brands');
             return CustomInputBox(
               isDropdown: true,
               child: DropdownButtonFormField<String>(
                 value: _selectedBrand,
                 hint: const Text('Select Brand'),
-                items: state.brands.map((brand) {
-                  return DropdownMenuItem<String>(
-                    value: brand.brandId,
-                    child: Text(brand.brandName),
-                  );
-                }).toList(),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: "all",
+                    child: const Text("All Brands"),
+                  ),
+                  ...state.brands.map((brand) {
+                    return DropdownMenuItem<String>(
+                      value: brand.brandId,
+                      child: Text(brand.brandName),
+                    );
+                  }).toList(),
+                ],
                 onChanged: (newValue) {
                   setState(() => _selectedBrand = newValue);
-                  if (newValue != null) {
-                    widget.onBrandSelected(newValue);
+                  if (newValue == "all") {
+                    widget.onBrandSelected(userBrandIds); // Pass all brand IDs
+                  } else {
+                    widget.onBrandSelected([newValue!]); // Pass selected brand ID
                   }
                 },
                 decoration: const InputDecoration(border: InputBorder.none),
                 validator: (value) =>
-                    value == null || value.isEmpty ? 'Please select a brand' : null,
+                    value == null ? 'Please select a brand' : null,
               ),
             );
           },

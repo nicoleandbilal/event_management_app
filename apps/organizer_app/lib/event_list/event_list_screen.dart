@@ -18,13 +18,23 @@ class EventListScreen extends StatefulWidget {
 }
 
 class EventListScreenState extends State<EventListScreen> {
-  String? selectedBrandId; // Store selected brand ID
+  List<String>? selectedBrandIds;
+  String? selectedStatus;
 
-  // Callback to filter events when a brand is selected.
-  void _onBrandSelected(String brandId) {
-    print("Brand selected: $brandId"); // Debugging print statement
-    selectedBrandId = brandId; // Store the selected brand ID
-    context.read<EventFilterBloc>().add(FilterEventsByBrand(brandId: brandId));
+  void _onBrandSelected(List<String> brandIds) {
+    selectedBrandIds = brandIds;
+    _applyCombinedFilter();
+  }
+
+  void _applyCombinedFilter() {
+    if (selectedBrandIds != null && selectedBrandIds!.isNotEmpty) {
+      context.read<EventFilterBloc>().add(
+        FilterEvents(
+          brandIds: selectedBrandIds!,
+          status: selectedStatus,
+        ),
+      );
+    }
   }
 
   @override
@@ -54,9 +64,7 @@ class EventListScreenState extends State<EventListScreen> {
             padding: const EdgeInsets.all(16.0),
             child: CustomPaddingButton(
               onPressed: () {
-                if (selectedBrandId == null || selectedBrandId!.isEmpty) {
-                  print("Error: No brand selected.");
-                  // Display a dialog or a snackbar to inform the user
+                if (selectedBrandIds == null || selectedBrandIds!.isEmpty) {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -71,9 +79,8 @@ class EventListScreenState extends State<EventListScreen> {
                     ),
                   );
                 } else {
-                  print("Navigating to create event screen for brandId: $selectedBrandId");
                   context.push(
-                    '/create_event/$selectedBrandId',
+                    '/create_event/${selectedBrandIds!.first}',
                     extra: {
                       'eventRepository': eventRepository,
                       'authService': authService,
@@ -105,7 +112,7 @@ class EventListScreenState extends State<EventListScreen> {
               children: [
                 _buildFilterButton(context, label: 'Drafts', status: 'draft'),
                 const SizedBox(width: 8),
-                _buildFilterButton(context, label: 'Current', status: 'current'),
+                _buildFilterButton(context, label: 'Current', status: 'live'),
                 const SizedBox(width: 8),
                 _buildFilterButton(context, label: 'Past', status: 'past'),
               ],
@@ -118,13 +125,10 @@ class EventListScreenState extends State<EventListScreen> {
             child: BlocBuilder<EventFilterBloc, EventFilterState>(
               builder: (context, state) {
                 if (state is EventFilterLoading) {
-                  print("Loading events..."); // Debugging print statement
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is EventFilterLoaded) {
-                  print("Events loaded: ${state.filteredEvents.length}"); // Debugging print statement
                   return OrganizerEventList(events: state.filteredEvents);
                 } else if (state is EventFilterError) {
-                  print("Error loading events: ${state.errorMessage}"); // Debugging print statement
                   return Center(child: Text(state.errorMessage));
                 }
                 return const Center(child: Text('No events available.'));
@@ -140,8 +144,8 @@ class EventListScreenState extends State<EventListScreen> {
     return Expanded(
       child: CustomPaddingButton(
         onPressed: () {
-          print("Filter button clicked: $status"); // Debugging print statement
-          context.read<EventFilterBloc>().add(FilterEventsByStatus(status: status));
+          selectedStatus = status;
+          _applyCombinedFilter();
         },
         label: label,
         style: ElevatedButton.styleFrom(

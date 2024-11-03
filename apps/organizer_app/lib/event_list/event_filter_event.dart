@@ -2,23 +2,18 @@ part of 'event_filter_bloc.dart';
 
 abstract class EventFilterEvent extends Equatable {
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class FilterEventsByBrand extends EventFilterEvent {
-  final String brandId;
+class FilterEvents extends EventFilterEvent {
+  final List<String> brandIds; // List of brand IDs (for "All" or specific brand)
+  final String? status;
 
-  FilterEventsByBrand({required this.brandId});
-
-  @override
-  List<Object> get props => [brandId];
-}
-
-class FilterEventsByStatus extends EventFilterEvent {
-  final String status;
-
-  FilterEventsByStatus({required this.status});
+  FilterEvents({
+    required this.brandIds,
+    this.status,
+  });
 
   @override
-  List<Object> get props => [status];
+  List<Object?> get props => [brandIds, status];
 }

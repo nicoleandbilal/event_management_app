@@ -10,35 +10,29 @@ class EventFilterBloc extends Bloc<EventFilterEvent, EventFilterState> {
   final EventRepository eventRepository;
 
   EventFilterBloc({required this.eventRepository}) : super(EventFilterInitial()) {
-    on<FilterEventsByBrand>(_onFilterEventsByBrand);
-    on<FilterEventsByStatus>(_onFilterEventsByStatus);
+    on<FilterEvents>(_onFilterEvents);
   }
 
-  // Filter events by selected brand ID
-  Future<void> _onFilterEventsByBrand(
-    FilterEventsByBrand event, 
-    Emitter<EventFilterState> emit
-  ) async {
+  Future<void> _onFilterEvents(FilterEvents event, Emitter<EventFilterState> emit) async {
     emit(EventFilterLoading());
-    try {
-      final events = await eventRepository.getEventsByBrand(event.brandId);
-      emit(EventFilterLoaded(filteredEvents: events));
-    } catch (e) {
-      emit(EventFilterError(errorMessage: 'Failed to load events.'));
-    }
-  }
 
-  // Filter events by status (e.g., Draft, Current, Past)
-  Future<void> _onFilterEventsByStatus(
-    FilterEventsByStatus event, 
-    Emitter<EventFilterState> emit
-  ) async {
-    emit(EventFilterLoading());
     try {
-      final events = await eventRepository.getEventsByStatus(event.status);
+      List<Event> events;
+
+      if (event.brandIds.length > 1) {
+        // "All" brands selected, fetch events across all user's brands
+        events = await eventRepository.getEventsForAllUserBrands(event.brandIds, event.status);
+      } else {
+        // Filter by a single brandId and status
+        events = await eventRepository.getEventsByBrandAndStatus(
+          brandId: event.brandIds.first,
+          status: event.status,
+        );
+      }
+
       emit(EventFilterLoaded(filteredEvents: events));
     } catch (e) {
-      emit(EventFilterError(errorMessage: 'Failed to load events by status.'));
+      emit(EventFilterError(errorMessage: 'Failed to load events: $e'));
     }
   }
 }
