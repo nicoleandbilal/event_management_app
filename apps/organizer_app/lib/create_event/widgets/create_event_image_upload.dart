@@ -1,3 +1,5 @@
+// create_event_image_upload.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,10 +12,12 @@ import 'package:organizer_app/create_event/event_image_upload_service.dart';
 
 class CreateEventImageUpload extends StatefulWidget {
   final ImageUploadService imageUploadService;
+  final String eventId;
 
   const CreateEventImageUpload({
     super.key, 
-    required this.imageUploadService
+    required this.imageUploadService,
+    required this.eventId,
     });
 
   @override
@@ -26,7 +30,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
   File? _croppedImageFile;
   bool _isUploading = false;
 
-  Future<void> _pickAndCropImage(BuildContext context) async {
+  Future<void> _pickAndCropImage(BuildContext context, eventId) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -65,14 +69,14 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
           _fullImageFile = imageFile;
           _croppedImageFile = File(croppedFile.path);
         });
-        await _uploadImages(context);
+        await _uploadImages(context, widget.eventId);
       }
     } catch (e) {
       _showError(context, 'Error selecting or cropping image: $e');
     }
   }
 
-  Future<void> _uploadImages(BuildContext context) async {
+  Future<void> _uploadImages(BuildContext context, String eventId) async {
     if (_fullImageFile == null || _croppedImageFile == null) return;
 
     setState(() {
@@ -83,6 +87,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
       final urls = await widget.imageUploadService.uploadFullAndCroppedImages(
         _fullImageFile!,
         _croppedImageFile!,
+        widget.eventId,
       );
 
       final fullImageUrl = urls['fullImageUrl'];
@@ -151,7 +156,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
           );
         } else {
           return GestureDetector(
-            onTap: () => _pickAndCropImage(context),
+            onTap: () => _pickAndCropImage(context, widget.eventId),
             child: Container(
               width: double.infinity,
               height: 200,

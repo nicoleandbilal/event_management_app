@@ -5,9 +5,16 @@ abstract class CreateEventFormEvent extends Equatable {
   const CreateEventFormEvent();
 }
 
+class CreateDraftEvent extends CreateEventFormEvent {
+  final Event event;
+  const CreateDraftEvent(this.event);
+
+  @override
+  List<Object?> get props => [event];
+}
+
 class SubmitCreateEventForm extends CreateEventFormEvent {
   final Event event;
-
   const SubmitCreateEventForm(this.event);
 
   @override

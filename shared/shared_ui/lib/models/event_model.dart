@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Event {
   final String eventId;
   final String? brandId; // Foreign key to relate to the Brand
+  final String createdByUserId; // ID of the user who created the event
   final String eventName;
   final String description;
   final String category;
@@ -20,6 +21,7 @@ class Event {
   Event({
     required this.eventId,
     required this.brandId,
+    required this.createdByUserId, // Initialize createdBy field
     required this.eventName,
     required this.description,
     required this.category,
@@ -41,6 +43,7 @@ class Event {
     return Event(
       eventId: doc.id,
       brandId: data['brandId'],
+      createdByUserId: data['createdByUserId'] ?? '', // Fetch createdBy field
       eventName: data['eventName'] ?? '',
       description: data['description'] ?? '',
       category: data['category'] ?? '',
@@ -61,6 +64,7 @@ class Event {
   Map<String, dynamic> toJson() {
     return {
       'brandId': brandId,
+      'createdByUserId': createdByUserId, // Add createdBy to the JSON map
       'eventName': eventName,
       'description': description,
       'category': category,

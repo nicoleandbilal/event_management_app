@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
-import 'package:shared/events/event_repository.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
+import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/search/search_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
 

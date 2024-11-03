@@ -22,6 +22,14 @@ class CreateEventFormFailure extends CreateEventFormState {
   List<Object?> get props => [error];
 }
 
+class CreateEventFormDraftCreated extends CreateEventFormState {
+  final String eventId;
+  const CreateEventFormDraftCreated({required this.eventId});
+
+  @override
+  List<Object?> get props => [eventId];
+}
+
 class CreateEventFormImageUploading extends CreateEventFormState {}
 
 class CreateEventFormImageUrlsUpdated extends CreateEventFormState {

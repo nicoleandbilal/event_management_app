@@ -1,18 +1,19 @@
-// create_brand_form_bloc.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_brand_new/blocs/create_brand_form_event.dart';
 import 'package:organizer_app/create_brand_new/blocs/create_brand_form_state.dart';
 import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
 import 'package:shared/repositories/brand_repository.dart';
+import 'package:shared/repositories/user_repository.dart';
 
 class CreateBrandFormBloc extends Bloc<CreateBrandFormEvent, CreateBrandFormState> {
   final BrandRepository brandRepository;
   final ImageUploadService imageUploadService;
+  final UserRepository userRepository;
 
   CreateBrandFormBloc(
     this.brandRepository,
     this.imageUploadService,
+    this.userRepository, // Inject UserRepository here
   ) : super(CreateBrandFormInitial()) {
     on<CreateDraftBrand>(_onCreateDraftBrand);
     on<SubmitCreateBrandForm>(_onSubmitCreateBrandForm);
@@ -21,11 +22,18 @@ class CreateBrandFormBloc extends Bloc<CreateBrandFormEvent, CreateBrandFormStat
   }
 
   Future<void> _onCreateDraftBrand(
-    CreateDraftBrand event, 
+    CreateDraftBrand event,
     Emitter<CreateBrandFormState> emit,
   ) async {
     try {
       final brandId = await brandRepository.createDraftBrand(event.brand);
+
+      // After brand creation, add the brand ID to the user document
+      await userRepository.addBrandToUser(
+        userId: event.brand.userId,
+        brandId: brandId,
+      );
+
       emit(CreateBrandFormDraftCreated(brandId: brandId));
     } catch (error) {
       emit(CreateBrandFormFailure(error.toString()));
@@ -33,12 +41,19 @@ class CreateBrandFormBloc extends Bloc<CreateBrandFormEvent, CreateBrandFormStat
   }
 
   Future<void> _onSubmitCreateBrandForm(
-    SubmitCreateBrandForm event, 
+    SubmitCreateBrandForm event,
     Emitter<CreateBrandFormState> emit,
   ) async {
     emit(CreateBrandFormLoading());
     try {
       await brandRepository.submitBrand(event.brand);
+
+      // After brand submission, ensure the brand ID is also added to the user document
+      await userRepository.addBrandToUser(
+        userId: event.brand.userId,
+        brandId: event.brand.brandId,
+      );
+
       emit(CreateBrandFormSuccess());
     } catch (error) {
       emit(CreateBrandFormFailure(error.toString()));
@@ -46,7 +61,7 @@ class CreateBrandFormBloc extends Bloc<CreateBrandFormEvent, CreateBrandFormStat
   }
 
   Future<void> _onUpdateImageUrls(
-    UpdateImageUrls event, 
+    UpdateImageUrls event,
     Emitter<CreateBrandFormState> emit,
   ) async {
     emit(CreateBrandFormImageUploading());

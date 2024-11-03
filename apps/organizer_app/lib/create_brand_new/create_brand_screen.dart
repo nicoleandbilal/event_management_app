@@ -1,5 +1,3 @@
-// create_brand_screen.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +9,7 @@ import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
 import 'package:organizer_app/create_brand_new/create_brand_form.dart';
 import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/repositories/image_repository.dart';
+import 'package:shared/repositories/user_repository.dart';
 
 class CreateBrandScreen extends StatelessWidget {
   const CreateBrandScreen({super.key});
@@ -34,11 +33,17 @@ class CreateBrandScreen extends StatelessWidget {
             RepositoryProvider.of<ImageRepository>(context),
           ),
         ),
+        RepositoryProvider<UserRepository>(
+          create: (context) => UserRepository(
+            firestore: FirebaseFirestore.instance,
+          ),
+        ),
       ],
       child: BlocProvider(
         create: (context) => CreateBrandFormBloc(
           RepositoryProvider.of<BrandRepository>(context),
           RepositoryProvider.of<ImageUploadService>(context),
+          RepositoryProvider.of<UserRepository>(context), // Provide UserRepository
         ),
         child: BlocListener<CreateBrandFormBloc, CreateBrandFormState>(
           listener: (context, state) {

@@ -37,6 +37,7 @@ class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
         maxWidth: 1920,
         maxHeight: 1080,
       );
+      
       if (pickedFile == null) return;
 
       final File imageFile = File(pickedFile.path);

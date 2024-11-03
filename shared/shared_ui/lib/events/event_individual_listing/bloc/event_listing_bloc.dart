@@ -3,7 +3,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shared/models/event_model.dart';
-import 'package:shared/events/event_repository.dart';
+import 'package:shared/repositories/event_repository.dart';
 
 // EventListingState
 part 'event_listing_state.dart';

@@ -3,16 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:organizer_app/create_event/event_routes.dart';
 import 'package:organizer_app/main_and_navigation/main_navigation_bloc.dart';
 import 'package:organizer_app/main_and_navigation/navigation_routes.dart';          // Home routes
-import 'package:organizer_app/event_listing/edit_event_listing_screen.dart';
 import 'package:organizer_app/main_and_navigation/main_screen.dart';         // Main screen layout
 import 'package:organizer_app/profile/profile_routes.dart';
 import 'package:organizer_app/widgets/error_dialog.dart';
-import 'package:organizer_app/create_event/screens/create_event_screen.dart'; // Create Event screen
 import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/authentication/auth_routes.dart';
-import 'package:shared/events/event_individual_listing/event_listing_screen.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {
   return GoRouter(
@@ -49,24 +47,9 @@ GoRouter createGoRouter(BuildContext context, AuthState authState) {
         ],
       ),
       // Full-screen routes (not wrapped with MainScreen)
-      GoRoute(
-        path: '/create_event',
-        builder: (context, state) => const CreateEventScreen(),  // Full-screen create event
-      ),
-      GoRoute(
-        path: '/event_listing/:id',  // Event details screen (full-screen)
-        builder: (context, state) {
-          final String eventId = state.pathParameters['id']!;
-          return EventListingScreen(eventId: eventId);  // Pass event ID
-        },
-      ),
-      GoRoute(
-        path: '/edit_event/:id',  // Edit event screen (full-screen)
-        builder: (context, state) {
-          final String eventId = state.pathParameters['id']!;
-          return EditEventScreen(eventId: eventId);  // Pass event ID
-        },
-      ),
+
+      ...eventRoutes,
+
       // Error handling route
       GoRoute(
         path: '/error',

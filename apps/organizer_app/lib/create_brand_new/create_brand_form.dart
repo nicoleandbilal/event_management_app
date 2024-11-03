@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared/authentication/auth/auth_service.dart';
 
 class CreateBrandForm extends StatefulWidget {
+  
   const CreateBrandForm({super.key});
 
   @override
@@ -84,7 +85,9 @@ class _CreateBrandFormState extends State<CreateBrandForm> {
   }
 
   void _showErrorDialog(String message) {
-    context.push('/error', extra: {'message': message});
+    context.push('/error', 
+    extra: {'message': message
+    });
   }
 
   @override
@@ -94,6 +97,7 @@ class _CreateBrandFormState extends State<CreateBrandForm> {
         String? fullImageUrl;
         String? croppedImageUrl;
 
+        // Update image URLs from the state if available
         if (state is CreateBrandFormImageUrlsUpdated) {
           fullImageUrl = state.fullImageUrl;
           croppedImageUrl = state.croppedImageUrl;

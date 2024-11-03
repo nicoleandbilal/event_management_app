@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
+import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:shared/widgets/date_and_time_picker.dart';
 import 'package:organizer_app/create_event/widgets/create_event_image_upload.dart';
 import 'package:shared/models/event_model.dart';
@@ -12,11 +13,11 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CreateEventForm extends StatefulWidget {
-  
-  const CreateEventForm({super.key});
+  final String brandId;
+  const CreateEventForm({super.key, required this.brandId});
 
   @override
-  _CreateEventFormState createState() => _CreateEventFormState();
+  State<CreateEventForm> createState() => _CreateEventFormState();
 }
 
 class _CreateEventFormState extends State<CreateEventForm> {
@@ -30,9 +31,43 @@ class _CreateEventFormState extends State<CreateEventForm> {
   DateTime? _endDate;
   TimeOfDay? _endTime;
   String? _selectedCategory;
+  String? eventId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDraftEvent();
+  }
+
+  void _initializeDraftEvent() {
+    final createdByUserId = context.read<AuthService>().getCurrentUserId();
+
+    if (createdByUserId != null) {
+      final draftEvent = Event(
+        eventId: '', 
+        brandId: widget.brandId,
+        createdByUserId: createdByUserId,
+        eventName: '',
+        description: '',
+        category: 'Other',
+        startDateTime: DateTime.now(),
+        endDateTime: DateTime.now(),
+        venue: _venueController.text,
+        eventCoverImageFullUrl: null,
+        eventCoverImageCroppedUrl: null,
+        status: 'draft',
+        createdAt: Timestamp.now(),
+        updatedAt: null,
+        saleStartDate: null,
+        saleEndDate: null,
+      );
+
+      context.read<CreateEventFormBloc>().add(CreateDraftEvent(draftEvent));
+    }
+  }
 
   void _createEvent(BuildContext context, String? fullImageUrl, String? croppedImageUrl) {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() == true) {
       if (_startDate == null || _startTime == null || _endDate == null || _endTime == null) {
         _showErrorDialog('Please select both start and end date/time');
         return;
@@ -59,9 +94,12 @@ class _CreateEventFormState extends State<CreateEventForm> {
         return;
       }
 
-      final newEvent = Event(
-        eventId: '',
-        brandId: 'some_brand_id',  // Replace with actual brand ID if needed
+      final createdByUserId = context.read<AuthService>().getCurrentUserId()!;
+
+      final updatedEvent = Event(
+        eventId: eventId ?? '',
+        brandId: widget.brandId,
+        createdByUserId: createdByUserId,
         eventName: _eventNameController.text,
         description: _descriptionController.text,
         category: _selectedCategory ?? 'Other',
@@ -70,22 +108,19 @@ class _CreateEventFormState extends State<CreateEventForm> {
         venue: _venueController.text,
         eventCoverImageFullUrl: fullImageUrl,
         eventCoverImageCroppedUrl: croppedImageUrl,
-        status: 'draft',
+        status: 'live',
         createdAt: Timestamp.now(),
-        updatedAt: null,
+        updatedAt: Timestamp.now(),
         saleStartDate: null,
         saleEndDate: null,
       );
 
-      context.read<CreateEventFormBloc>().add(SubmitCreateEventForm(newEvent));
+      context.read<CreateEventFormBloc>().add(SubmitCreateEventForm(updatedEvent));
     }
   }
 
   void _showErrorDialog(String message) {
-    context.push(
-      '/error',
-      extra: {'message': message},
-    );
+    context.push('/error', extra: {'message': message});
   }
 
   @override
@@ -95,10 +130,11 @@ class _CreateEventFormState extends State<CreateEventForm> {
         String? fullImageUrl;
         String? croppedImageUrl;
 
-        // Update image URLs from the state if available
         if (state is CreateEventFormImageUrlsUpdated) {
           fullImageUrl = state.fullImageUrl;
           croppedImageUrl = state.croppedImageUrl;
+        } else if (state is CreateEventFormDraftCreated) {
+          eventId = state.eventId; // Set eventId from state
         }
 
         return Form(
@@ -107,7 +143,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                
                 _buildTextInput(
                   'Event Name',
                   'Enter event name',
@@ -116,8 +151,12 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 ),
                 const SizedBox(height: 16),
 
-                // Image upload widget
-                CreateEventImageUpload(imageUploadService: context.read()),
+                // Only load the uploader widget if eventId is available
+                if (eventId != null)
+                  CreateEventImageUpload(
+                    imageUploadService: context.read(),
+                    eventId: eventId!, // Pass the available eventId
+                  ),
 
                 const SizedBox(height: 16),
                 _buildTextInput(
@@ -128,7 +167,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 ),
                 const SizedBox(height: 16),
 
-                // Date and time picker for Start
                 CreateEventDatePicker(
                   label: "Start",
                   date: _startDate,
@@ -138,7 +176,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 ),
                 const SizedBox(height: 16),
 
-                // Date and time picker for End
                 CreateEventDatePicker(
                   label: "End",
                   date: _endDate,
@@ -148,7 +185,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 ),
                 const SizedBox(height: 16),
 
-                // Dropdown for Category Selection
                 _buildCategoryDropdown(),
 
                 const SizedBox(height: 16),
@@ -191,15 +227,11 @@ class _CreateEventFormState extends State<CreateEventForm> {
     );
   }
 
-  // Dropdown for Category
   Widget _buildCategoryDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Choose Category',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-        ),
+        const Text('Choose Category', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
         const SizedBox(height: 8),
         CustomInputBox(
           isDropdown: true,
@@ -218,7 +250,6 @@ class _CreateEventFormState extends State<CreateEventForm> {
     );
   }
 
-  // Text Input Box
   Widget _buildTextInput(
     String label,
     String placeholder,
@@ -228,20 +259,14 @@ class _CreateEventFormState extends State<CreateEventForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-        ),
+        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
         const SizedBox(height: 8),
         CustomInputBox(
           child: TextFormField(
             controller: controller,
             decoration: InputDecoration(
               hintText: placeholder,
-              hintStyle: TextStyle(
-                fontWeight: FontWeight.w300,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              hintStyle: TextStyle(fontWeight: FontWeight.w300, color: Theme.of(context).colorScheme.primary),
               border: InputBorder.none,
             ),
             validator: validator,

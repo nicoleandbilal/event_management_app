@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';
+import 'package:organizer_app/event_list/event_filter_bloc.dart';
+import 'package:organizer_app/choose_brand/choose_brand_dropdown_bloc.dart';
 import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/config/app_theme.dart';
-import 'package:shared/events/event_repository.dart';
 import 'package:shared/repositories/auth_repository.dart';
+import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/user_repository.dart';
 import 'package:shared/search/search_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
@@ -68,6 +70,17 @@ class EventManagementApp extends StatelessWidget {
           BlocProvider<SearchBloc>(
             create: (context) => SearchBloc(
               searchRepository: context.read<SearchRepository>(),
+            ),
+          ),
+          BlocProvider<EventFilterBloc>(
+            create: (context) => EventFilterBloc(
+              eventRepository: context.read<EventRepository>(),
+            ),
+          ),
+          BlocProvider<ChooseBrandDropdownBloc>(
+            create: (context) => ChooseBrandDropdownBloc(
+              brandRepository: context.read<BrandRepository>(),
+              authService: context.read<AuthService>(), // Pass authService if required
             ),
           ),
         ],

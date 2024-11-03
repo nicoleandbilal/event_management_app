@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/events/event_list/event_list_item.dart';
+import 'event_list_item.dart';
 
 class EventList extends StatelessWidget {
   const EventList({super.key});

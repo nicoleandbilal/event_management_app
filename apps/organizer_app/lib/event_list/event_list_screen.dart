@@ -1,130 +1,139 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/events/event_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:organizer_app/choose_brand/choose_brand_dropdown.dart';
+import 'package:organizer_app/choose_brand/choose_brand_dropdown_bloc.dart';
+import 'package:organizer_app/event_list/event_filter_bloc.dart';
+import 'package:organizer_app/event_list/organizer_event_list.dart';
+import 'package:shared/repositories/event_repository.dart';
+import 'package:shared/repositories/brand_repository.dart';
+import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
-import 'package:shared/events/event_list/event_list.dart';
 
-class EventListScreen extends StatelessWidget {
+class EventListScreen extends StatefulWidget {
   const EventListScreen({super.key});
 
   @override
+  EventListScreenState createState() => EventListScreenState();
+}
+
+class EventListScreenState extends State<EventListScreen> {
+  // Callback to filter events when a brand is selected.
+  void _onBrandSelected(String brandId) {
+    print("Brand selected: $brandId"); // Debugging print statement
+    context.read<EventFilterBloc>().add(FilterEventsByBrand(brandId: brandId));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Padded content area for buttons and other widgets
-        Padding(
-          padding: const EdgeInsets.all(16.0), // Overall padding for main content
-          child: Column(
-            children: [
-              // Create New Event button at the top
-              CustomPaddingButton(
-                onPressed: () {
-                  // Navigate to CreateEventScreen
-                  context.push(
-                    '/create_event',
-                    extra: context.read<EventRepository>(), // Pass repository
-                  );
-                },
-                label: 'Create New Event',
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(3.0),
-                  ),
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.grey,
-                  minimumSize: const Size(double.infinity, 40),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ],
+    final authService = context.read<AuthService>();
+    final brandRepository = context.read<BrandRepository>();
+    final eventRepository = context.read<EventRepository>();
+
+    return BlocProvider(
+      create: (context) => ChooseBrandDropdownBloc(
+        brandRepository: brandRepository,
+        authService: authService,
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: ChooseBrandDropdown(
+              onBrandSelected: _onBrandSelected,
+            ),
           ),
-        ),
+          const Divider(height: 1, color: Colors.grey),
+          const SizedBox(height: 10),
 
-        // Divider that spans the full width of the screen
-        const Divider(height: 1, color: Colors.grey),
-        const SizedBox(height: 10),
-
-        // Padded content area for row of buttons
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0), // Consistent side padding
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Drafts button
-              Expanded(
-                child: CustomPaddingButton(
-                  onPressed: () {
-                    // Action for Drafts
+          // Button to create a new event
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: CustomPaddingButton(
+              onPressed: () {
+                print("Navigating to create event screen"); // Debugging print statement
+                context.push(
+                  '/create_event',
+                  extra: {
+                    'eventRepository': eventRepository,
+                    'authService': authService,
                   },
-                  label: 'Drafts',
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(3.0),
-                    ),
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.grey,
-                    minimumSize: const Size(0, 30),  // Smaller height
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
+                );
+              },
+              label: 'Create New Event',
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(3.0),
                 ),
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.grey,
+                minimumSize: const Size(double.infinity, 40),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              const SizedBox(width: 8),
-
-              // Current button
-              Expanded(
-                child: CustomPaddingButton(
-                  onPressed: () {
-                    // Action for Current
-                  },
-                  label: 'Current',
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(3.0),
-                    ),
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.grey,
-                    minimumSize: const Size(0, 30),  // Smaller height
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Past button
-              Expanded(
-                child: CustomPaddingButton(
-                  onPressed: () {
-                    // Action for Past
-                  },
-                  label: 'Past',
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(3.0),
-                    ),
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.grey,
-                    minimumSize: const Size(0, 30),  // Smaller height
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-        //const SizedBox(height: 10),
-        //const Divider(height: 1, color: Colors.grey),
+          const Divider(height: 1, color: Colors.grey),
+          const SizedBox(height: 10),
 
-        // Expanded widget for the event list
-        const Expanded(
-          child: EventList(),  // Display the event list here
+          // Filter buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildFilterButton(context, label: 'Drafts', status: 'draft'),
+                const SizedBox(width: 8),
+                _buildFilterButton(context, label: 'Current', status: 'current'),
+                const SizedBox(width: 8),
+                _buildFilterButton(context, label: 'Past', status: 'past'),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Colors.grey),
+
+          // Organizer-specific event list
+          Expanded(
+            child: BlocBuilder<EventFilterBloc, EventFilterState>(
+              builder: (context, state) {
+                if (state is EventFilterLoading) {
+                  print("Loading events..."); // Debugging print statement
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is EventFilterLoaded) {
+                  print("Events loaded: ${state.filteredEvents.length}"); // Debugging print statement
+                  return OrganizerEventList(events: state.filteredEvents);
+                } else if (state is EventFilterError) {
+                  print("Error loading events: ${state.errorMessage}"); // Debugging print statement
+                  return Center(child: Text(state.errorMessage));
+                }
+                return const Center(child: Text('No events available.'));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(BuildContext context, {required String label, required String status}) {
+    return Expanded(
+      child: CustomPaddingButton(
+        onPressed: () {
+          print("Filter button clicked: $status"); // Debugging print statement
+          context.read<EventFilterBloc>().add(FilterEventsByStatus(status: status));
+        },
+        label: label,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(3.0),
+          ),
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.grey,
+          minimumSize: const Size(0, 30),
+          padding: const EdgeInsets.symmetric(vertical: 8),
         ),
-        
-      ],
+      ),
     );
   }
 }

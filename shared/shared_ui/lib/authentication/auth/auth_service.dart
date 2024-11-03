@@ -8,19 +8,30 @@ class AuthService {
 
   AuthService(this._authRepository);
 
-  // Get current user's ID if authenticated, or null if not
+  /// Retrieves the current authenticated user's ID, or null if not authenticated
   String? getCurrentUserId() {
     final user = _authRepository.getCurrentUser();
-    return user?.uid;
+    final userId = user?.uid;
+    print('Current user ID: $userId');
+    return userId;
   }
 
-  // Handle user sign-in and additional actions (e.g., logging, loading profile)
+  /// Signs in the user with email and password, returning the User object if successful
   Future<User?> signIn(String email, String password) async {
-    return await _authRepository.signInWithEmail(email, password);
+    try {
+      return await _authRepository.signInWithEmail(email, password);
+    } catch (e) {
+      print("Error signing in: $e");
+      return null; // Return null if sign-in fails
+    }
   }
 
-  // Sign out the user and perform any additional cleanup if needed
+  /// Signs out the user and performs any additional cleanup if needed
   Future<void> signOut() async {
-    await _authRepository.signOut();
+    try {
+      await _authRepository.signOut();
+    } catch (e) {
+      print("Error signing out: $e");
+    }
   }
 }

@@ -1,9 +1,9 @@
+import 'package:attendee_app/event_list/event_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/events/event_repository.dart';
+import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
-import 'package:shared/events/event_list/event_list.dart';
 
 
 class HomeScreen extends StatelessWidget {

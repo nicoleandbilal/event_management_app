@@ -11,7 +11,7 @@ import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:shared/events/event_individual_listing/bloc/event_listing_bloc.dart';
 import 'package:shared/events/event_individual_listing/event_listing_screen.dart';
-import 'package:shared/events/event_repository.dart';
+import 'package:shared/repositories/event_repository.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {
   return GoRouter(
