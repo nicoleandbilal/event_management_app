@@ -56,8 +56,9 @@ class EventListScreenState extends State<EventListScreen> {
               onBrandSelected: _onBrandSelected,
             ),
           ),
-          const Divider(height: 1, color: Colors.grey),
+
           const SizedBox(height: 10),
+          const Divider(height: 1, color: Colors.grey),
 
           // Button to create a new event
           Padding(
@@ -118,6 +119,7 @@ class EventListScreenState extends State<EventListScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 10),
           const Divider(height: 1, color: Colors.grey),
 
           // Organizer-specific event list

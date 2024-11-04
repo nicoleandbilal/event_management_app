@@ -143,6 +143,20 @@ class _CreateEventFormState extends State<CreateEventForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'Event Details',
+                  style: GoogleFonts.raleway(
+                    textStyle: const TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                const Divider(height: 1, color: Colors.grey),
+
+                const SizedBox(height: 20),
                 _buildTextInput(
                   'Event Name',
                   'Enter event name',
@@ -196,10 +210,39 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 ),
 
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: () => _createEvent(context, fullImageUrl, croppedImageUrl),
+
+                              // Save and Next Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => _createEvent(context, fullImageUrl, croppedImageUrl),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.all(16.0),
+                        backgroundColor: Colors.grey.shade800,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: Text(
+                        'Save',
+                        style: GoogleFonts.raleway(
+                          textStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.surface,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/second_create_event_form');
+                    },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.all(16.0),
                       backgroundColor: Colors.grey.shade800,
@@ -208,7 +251,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                       ),
                     ),
                     child: Text(
-                      'Create Event',
+                      'Next',
                       style: GoogleFonts.raleway(
                         textStyle: TextStyle(
                           color: Theme.of(context).colorScheme.surface,
@@ -218,7 +261,11 @@ class _CreateEventFormState extends State<CreateEventForm> {
                       ),
                     ),
                   ),
-                ),
+                )
+                ],
+              ),
+
+
               ],
             ),
           ),
