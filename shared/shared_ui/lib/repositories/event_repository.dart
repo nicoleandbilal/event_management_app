@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared/models/event_mapper.dart';
 import 'package:shared/models/event_model.dart';
 
 class EventRepository {
@@ -7,10 +8,10 @@ class EventRepository {
   EventRepository({required this.firestore});
 
   // Create a draft event with a "draft" status
-  Future<String> createDraftEvent(Event event) async {
+  Future<String> createFormDraftEvent(Event event) async {
     try {
       final docRef = await firestore.collection('events').add({
-        ...event.toJson(),
+        ...TomaEventMapper.toFirestore(event),
         'status': 'draft', // Ensure status is set to draft on creation
         'createdAt': Timestamp.now(),
         'updatedAt': null,
@@ -21,11 +22,22 @@ class EventRepository {
     }
   }
 
+  // Updates a draft event with partial data (e.g., from form progress) and changes status to 'draft'
+  Future<void> updateDraftEvent(String eventId, Map<String, dynamic> updatedData) async {
+    try {
+      updatedData['status'] = 'draft';  // Set status to 'draft'
+      updatedData['updatedAt'] = Timestamp.fromDate(DateTime.now());  // Update timestamp
+      await firestore.collection('events').doc(eventId).update(updatedData);
+    } catch (e) {
+      throw Exception('Failed to update draft event: $e');
+    }
+  }
+  
   // Submit an event by updating its status to "live"
   Future<void> submitEvent(Event event) async {
     try {
       await firestore.collection('events').doc(event.eventId).update({
-        ...event.toJson(),
+        ...TomaEventMapper.toFirestore(event),
         'status': 'live', // Update event status to live
         'updatedAt': Timestamp.now(),
       });
@@ -39,7 +51,7 @@ class EventRepository {
     try {
       final DocumentSnapshot doc = await firestore.collection('events').doc(eventId).get();
       if (doc.exists) {
-        return Event.fromDocument(doc); // Convert the Firestore document into an Event model
+        return TomaEventMapper.fromFirestore(doc); // Convert Firestore document into an Event model
       } else {
         throw Exception('Event not found');
       }
@@ -56,7 +68,7 @@ class EventRepository {
           .where('brandId', isEqualTo: brandId)
           .get();
 
-      return querySnapshot.docs.map((doc) => Event.fromDocument(doc)).toList();
+      return querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
     } catch (e) {
       throw Exception('Error fetching events by brand: $e');
     }
@@ -70,7 +82,7 @@ class EventRepository {
           .where('status', isEqualTo: status)
           .get();
 
-      return querySnapshot.docs.map((doc) => Event.fromDocument(doc)).toList();
+      return querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
     } catch (e) {
       throw Exception('Error fetching events by status: $e');
     }
@@ -88,13 +100,13 @@ class EventRepository {
           .where('status', isEqualTo: status)
           .get();
 
-      return querySnapshot.docs.map((doc) => Event.fromDocument(doc)).toList();
+      return querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
     } catch (e) {
       throw Exception('Error fetching events by brand and status: $e');
     }
   }
 
-// Fetch events across multiple brands with an optional status filter
+  // Fetch events across multiple brands with an optional status filter
   Future<List<Event>> getEventsForAllUserBrands(
       List<String> brandIds, String? status) async {
     try {
@@ -105,7 +117,7 @@ class EventRepository {
       }
 
       final querySnapshot = await query.get();
-      return querySnapshot.docs.map((doc) => Event.fromDocument(doc)).toList();
+      return querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
     } catch (e) {
       throw Exception('Error fetching events for all user brands: $e');
     }

@@ -3,7 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/create_event/screens/create_event_screen.dart';
+import 'package:organizer_app/create_event/create_event_screen.dart';
 import 'package:organizer_app/event_list/event_filter_bloc.dart';
 import 'package:organizer_app/event_list/event_list_screen.dart';
 import 'package:organizer_app/event_listing/edit_event_listing_screen.dart';
