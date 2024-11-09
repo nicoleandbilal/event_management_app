@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'dart:io';
 
 // Abstract base class for form events
 abstract class CreateEventFormEvent extends Equatable {
@@ -48,13 +49,18 @@ class SubmitForm extends CreateEventFormEvent {
 
 // Event to update image URLs after an image upload or change
 class UpdateImageUrls extends CreateEventFormEvent {
-  final String fullImageUrl;
-  final String croppedImageUrl;
+  final File fullImage;
+  final File croppedImage;
+  final String eventId;
 
-  const UpdateImageUrls({required this.fullImageUrl, required this.croppedImageUrl});
+  const UpdateImageUrls({
+    required this.fullImage,
+    required this.croppedImage,
+    required this.eventId,
+  });
 
   @override
-  List<Object?> get props => [fullImageUrl, croppedImageUrl];
+  List<Object?> get props => [fullImage, croppedImage, eventId];
 }
 
 // Event to delete image URLs from the form state

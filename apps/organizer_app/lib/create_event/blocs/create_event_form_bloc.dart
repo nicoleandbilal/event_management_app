@@ -16,7 +16,7 @@ class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormStat
     required this.eventRepository,
   }) : super(FormInitial()) {
     on<InitializeDraftEvent>(_onInitializeDraftEvent);
-    on<UpdateFormPageData>(_onUpdateFormPageData); // Use a single event for both save and next
+    on<UpdateFormPageData>(_onUpdateFormPageData);
     on<SubmitForm>(_onSubmitForm);
     on<UpdateImageUrls>(_onUpdateImageUrls);
     on<DeleteImageUrls>(_onDeleteImageUrls);
@@ -37,9 +37,12 @@ class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormStat
         startDateTime: DateTime.now(),
         endDateTime: DateTime.now().add(const Duration(hours: 1)),
         venue: '',
+        eventCoverImageFullUrl: '',
+        eventCoverImageCroppedUrl: '',
         status: 'form-draft',
         createdAt: DateTime.now(),
       );
+
       final eventId = await eventRepository.createFormDraftEvent(draftEvent!);
       draftEvent = draftEvent!.copyWith(eventId: eventId);
       emit(FormDraftInitialized(eventId));
@@ -85,27 +88,61 @@ class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormStat
       emit(const FormFailure("Cannot submit: draft event is not initialized."));
     }
   }
-}
 
-  // Updates image URLs with a loading state, simulating async upload
+  // Updates image URLs after successful upload, directly updating draftEvent
   Future<void> _onUpdateImageUrls(UpdateImageUrls event, Emitter<CreateEventFormState> emit) async {
     emit(FormImageUploading()); // Emit loading state before URL update
+
     try {
-      // Mock delay for image upload (use actual upload logic as needed)
-      await Future.delayed(const Duration(milliseconds: 300)); 
+      // Upload images and get URLs
+      final urls = await imageUploadService.uploadFullAndCroppedImages(
+        event.fullImage,
+        event.croppedImage,
+        event.eventId,
+      );
+
+      // Update draftEvent with uploaded image URLs
+      draftEvent = draftEvent?.copyWith(
+        eventCoverImageFullUrl: urls['fullImageUrl'],
+        eventCoverImageCroppedUrl: urls['croppedImageUrl'],
+      );
+
+      // Emit URLs to the state
       emit(FormImageUrlsUpdated(
-          fullImageUrl: event.fullImageUrl, croppedImageUrl: event.croppedImageUrl));
-    } catch (error) {
-      emit(FormFailure("Image upload failed: ${error.toString()}"));
+        fullImageUrl: urls['fullImageUrl'],
+        croppedImageUrl: urls['croppedImageUrl'],
+      ));
+
+      // Save updated URLs in Firebase
+      await eventRepository.updateDraftEvent(draftEvent!.eventId, TomaEventMapper.toFirestore(draftEvent!));
+    } catch (e) {
+      emit(FormFailure("Image upload failed: $e"));
     }
   }
 
-  // Clears or deletes image URLs from the state
+  // Clears or deletes image URLs from the state and Firebase
   void _onDeleteImageUrls(DeleteImageUrls event, Emitter<CreateEventFormState> emit) {
-    emit(const FormImageUrlsUpdated()); // Set URLs to null to remove them
+    draftEvent = draftEvent?.copyWith(
+      eventCoverImageFullUrl: '',
+      eventCoverImageCroppedUrl: '',
+    );
+
+    // Emit null URLs to the state to indicate deletion
+    emit(const FormImageUrlsUpdated(fullImageUrl: null, croppedImageUrl: null));
+
+    // Update Firebase to remove image URLs
+    if (draftEvent != null) {
+      eventRepository.updateDraftEvent(
+        draftEvent!.eventId,
+        TomaEventMapper.toFirestore(draftEvent!),
+      ).catchError((e) {
+        emit(FormFailure("Failed to update Firebase on image deletion: $e"));
+      });
+    }
   }
 
   // Toggles ticket type between paid and free
   void _onToggleTicketType(ToggleTicketTypeEvent event, Emitter<CreateEventFormState> emit) {
     emit(TicketTypeToggled(event.isPaidTicket));
   }
+}
