@@ -5,15 +5,18 @@ import 'create_event_form_event.dart';
 import 'create_event_form_state.dart';
 import 'package:shared/models/event_model.dart';
 import 'package:shared/repositories/event_repository.dart';
+import 'package:shared/repositories/ticket_repository.dart';
 
 class CreateEventFormBloc extends Bloc<CreateEventFormEvent, CreateEventFormState> {
   final ImageUploadService imageUploadService;
   final EventRepository eventRepository;
+  final TicketRepository ticketRepository; // Repository for ticket operations
   Event? draftEvent;
 
   CreateEventFormBloc({
     required this.imageUploadService,
     required this.eventRepository,
+    required this.ticketRepository,
   }) : super(FormInitial()) {
     on<InitializeDraftEvent>(_onInitializeDraftEvent);
     on<UpdateFormPageData>(_onUpdateFormPageData);

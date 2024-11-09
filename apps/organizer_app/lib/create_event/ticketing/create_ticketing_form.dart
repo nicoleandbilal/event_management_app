@@ -42,12 +42,17 @@ class CreateTicketForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 1, color: Colors.grey),
           const Text(
             'Ticket Options',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 10),
+
+          const Divider(height: 1, color: Colors.grey),
+
+          const SizedBox(height: 20),
+
           _buildTicketTypeToggle(),
           _buildTextInput(
             label: 'Ticket Name',
@@ -70,12 +75,14 @@ class CreateTicketForm extends StatelessWidget {
             controller: _ticketQuantityController,
             validator: (value) => value?.isEmpty == true ? 'Please enter quantity' : null,
           ),
+          const SizedBox(height: 16),
           _buildTextInput(
             label: 'Sale Start Date',
             placeholder: 'Enter sale start date (YYYY-MM-DD)',
             controller: _saleStartDateController,
             validator: (value) => value?.isEmpty == true ? 'Please enter sale start date' : null,
           ),
+          const SizedBox(height: 16),
           _buildTextInput(
             label: 'Sale End Date',
             placeholder: 'Enter sale end date (YYYY-MM-DD)',

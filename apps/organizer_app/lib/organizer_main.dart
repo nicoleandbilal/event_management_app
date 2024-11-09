@@ -13,6 +13,7 @@ import 'package:shared/config/app_theme.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/image_repository.dart';
+import 'package:shared/repositories/ticket_repository.dart';
 import 'package:shared/repositories/user_repository.dart';
 import 'package:shared/search/search_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
@@ -104,6 +105,7 @@ class EventManagementApp extends StatelessWidget {
             create: (context) => CreateEventFormBloc(
               imageUploadService: context.read<ImageUploadService>(), // Inject ImageUploadService
               eventRepository: context.read<EventRepository>(), // Inject EventRepository
+              ticketRepository: context.read<TicketRepository>(), // Inject EventRepository
             ),
           ),
         ],
