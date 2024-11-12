@@ -8,6 +8,7 @@ class Ticket with _$Ticket {
   const factory Ticket({
     required String ticketId,
     required String eventId,
+    required String ticketType, // Free, Paid or Donation 
     required String ticketName,
     required double ticketPrice,
     required int availableQuantity,
@@ -15,8 +16,8 @@ class Ticket with _$Ticket {
     String? description,
     String? stripePriceId,
     @Default(true) bool isRefundable,
-    DateTime? saleStartDate,
-    DateTime? saleEndDate,
+    DateTime? ticketSaleStartDateTime,
+    DateTime? ticketSaleEndDateTime,
     @Default(false) bool isSoldOut,
   }) = _Ticket;
 

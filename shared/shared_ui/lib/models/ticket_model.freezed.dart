@@ -22,6 +22,8 @@ Ticket _$TicketFromJson(Map<String, dynamic> json) {
 mixin _$Ticket {
   String get ticketId => throw _privateConstructorUsedError;
   String get eventId => throw _privateConstructorUsedError;
+  String get ticketType =>
+      throw _privateConstructorUsedError; // Free, Paid or Donation
   String get ticketName => throw _privateConstructorUsedError;
   double get ticketPrice => throw _privateConstructorUsedError;
   int get availableQuantity => throw _privateConstructorUsedError;
@@ -29,8 +31,8 @@ mixin _$Ticket {
   String? get description => throw _privateConstructorUsedError;
   String? get stripePriceId => throw _privateConstructorUsedError;
   bool get isRefundable => throw _privateConstructorUsedError;
-  DateTime? get saleStartDate => throw _privateConstructorUsedError;
-  DateTime? get saleEndDate => throw _privateConstructorUsedError;
+  DateTime? get ticketSaleStartDateTime => throw _privateConstructorUsedError;
+  DateTime? get ticketSaleEndDateTime => throw _privateConstructorUsedError;
   bool get isSoldOut => throw _privateConstructorUsedError;
 
   /// Serializes this Ticket to a JSON map.
@@ -50,6 +52,7 @@ abstract class $TicketCopyWith<$Res> {
   $Res call(
       {String ticketId,
       String eventId,
+      String ticketType,
       String ticketName,
       double ticketPrice,
       int availableQuantity,
@@ -57,8 +60,8 @@ abstract class $TicketCopyWith<$Res> {
       String? description,
       String? stripePriceId,
       bool isRefundable,
-      DateTime? saleStartDate,
-      DateTime? saleEndDate,
+      DateTime? ticketSaleStartDateTime,
+      DateTime? ticketSaleEndDateTime,
       bool isSoldOut});
 }
 
@@ -79,6 +82,7 @@ class _$TicketCopyWithImpl<$Res, $Val extends Ticket>
   $Res call({
     Object? ticketId = null,
     Object? eventId = null,
+    Object? ticketType = null,
     Object? ticketName = null,
     Object? ticketPrice = null,
     Object? availableQuantity = null,
@@ -86,8 +90,8 @@ class _$TicketCopyWithImpl<$Res, $Val extends Ticket>
     Object? description = freezed,
     Object? stripePriceId = freezed,
     Object? isRefundable = null,
-    Object? saleStartDate = freezed,
-    Object? saleEndDate = freezed,
+    Object? ticketSaleStartDateTime = freezed,
+    Object? ticketSaleEndDateTime = freezed,
     Object? isSoldOut = null,
   }) {
     return _then(_value.copyWith(
@@ -98,6 +102,10 @@ class _$TicketCopyWithImpl<$Res, $Val extends Ticket>
       eventId: null == eventId
           ? _value.eventId
           : eventId // ignore: cast_nullable_to_non_nullable
+              as String,
+      ticketType: null == ticketType
+          ? _value.ticketType
+          : ticketType // ignore: cast_nullable_to_non_nullable
               as String,
       ticketName: null == ticketName
           ? _value.ticketName
@@ -127,13 +135,13 @@ class _$TicketCopyWithImpl<$Res, $Val extends Ticket>
           ? _value.isRefundable
           : isRefundable // ignore: cast_nullable_to_non_nullable
               as bool,
-      saleStartDate: freezed == saleStartDate
-          ? _value.saleStartDate
-          : saleStartDate // ignore: cast_nullable_to_non_nullable
+      ticketSaleStartDateTime: freezed == ticketSaleStartDateTime
+          ? _value.ticketSaleStartDateTime
+          : ticketSaleStartDateTime // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      saleEndDate: freezed == saleEndDate
-          ? _value.saleEndDate
-          : saleEndDate // ignore: cast_nullable_to_non_nullable
+      ticketSaleEndDateTime: freezed == ticketSaleEndDateTime
+          ? _value.ticketSaleEndDateTime
+          : ticketSaleEndDateTime // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       isSoldOut: null == isSoldOut
           ? _value.isSoldOut
@@ -153,6 +161,7 @@ abstract class _$$TicketImplCopyWith<$Res> implements $TicketCopyWith<$Res> {
   $Res call(
       {String ticketId,
       String eventId,
+      String ticketType,
       String ticketName,
       double ticketPrice,
       int availableQuantity,
@@ -160,8 +169,8 @@ abstract class _$$TicketImplCopyWith<$Res> implements $TicketCopyWith<$Res> {
       String? description,
       String? stripePriceId,
       bool isRefundable,
-      DateTime? saleStartDate,
-      DateTime? saleEndDate,
+      DateTime? ticketSaleStartDateTime,
+      DateTime? ticketSaleEndDateTime,
       bool isSoldOut});
 }
 
@@ -180,6 +189,7 @@ class __$$TicketImplCopyWithImpl<$Res>
   $Res call({
     Object? ticketId = null,
     Object? eventId = null,
+    Object? ticketType = null,
     Object? ticketName = null,
     Object? ticketPrice = null,
     Object? availableQuantity = null,
@@ -187,8 +197,8 @@ class __$$TicketImplCopyWithImpl<$Res>
     Object? description = freezed,
     Object? stripePriceId = freezed,
     Object? isRefundable = null,
-    Object? saleStartDate = freezed,
-    Object? saleEndDate = freezed,
+    Object? ticketSaleStartDateTime = freezed,
+    Object? ticketSaleEndDateTime = freezed,
     Object? isSoldOut = null,
   }) {
     return _then(_$TicketImpl(
@@ -199,6 +209,10 @@ class __$$TicketImplCopyWithImpl<$Res>
       eventId: null == eventId
           ? _value.eventId
           : eventId // ignore: cast_nullable_to_non_nullable
+              as String,
+      ticketType: null == ticketType
+          ? _value.ticketType
+          : ticketType // ignore: cast_nullable_to_non_nullable
               as String,
       ticketName: null == ticketName
           ? _value.ticketName
@@ -228,13 +242,13 @@ class __$$TicketImplCopyWithImpl<$Res>
           ? _value.isRefundable
           : isRefundable // ignore: cast_nullable_to_non_nullable
               as bool,
-      saleStartDate: freezed == saleStartDate
-          ? _value.saleStartDate
-          : saleStartDate // ignore: cast_nullable_to_non_nullable
+      ticketSaleStartDateTime: freezed == ticketSaleStartDateTime
+          ? _value.ticketSaleStartDateTime
+          : ticketSaleStartDateTime // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      saleEndDate: freezed == saleEndDate
-          ? _value.saleEndDate
-          : saleEndDate // ignore: cast_nullable_to_non_nullable
+      ticketSaleEndDateTime: freezed == ticketSaleEndDateTime
+          ? _value.ticketSaleEndDateTime
+          : ticketSaleEndDateTime // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       isSoldOut: null == isSoldOut
           ? _value.isSoldOut
@@ -250,6 +264,7 @@ class _$TicketImpl implements _Ticket {
   const _$TicketImpl(
       {required this.ticketId,
       required this.eventId,
+      required this.ticketType,
       required this.ticketName,
       required this.ticketPrice,
       required this.availableQuantity,
@@ -257,8 +272,8 @@ class _$TicketImpl implements _Ticket {
       this.description,
       this.stripePriceId,
       this.isRefundable = true,
-      this.saleStartDate,
-      this.saleEndDate,
+      this.ticketSaleStartDateTime,
+      this.ticketSaleEndDateTime,
       this.isSoldOut = false});
 
   factory _$TicketImpl.fromJson(Map<String, dynamic> json) =>
@@ -268,6 +283,9 @@ class _$TicketImpl implements _Ticket {
   final String ticketId;
   @override
   final String eventId;
+  @override
+  final String ticketType;
+// Free, Paid or Donation
   @override
   final String ticketName;
   @override
@@ -284,16 +302,16 @@ class _$TicketImpl implements _Ticket {
   @JsonKey()
   final bool isRefundable;
   @override
-  final DateTime? saleStartDate;
+  final DateTime? ticketSaleStartDateTime;
   @override
-  final DateTime? saleEndDate;
+  final DateTime? ticketSaleEndDateTime;
   @override
   @JsonKey()
   final bool isSoldOut;
 
   @override
   String toString() {
-    return 'Ticket(ticketId: $ticketId, eventId: $eventId, ticketName: $ticketName, ticketPrice: $ticketPrice, availableQuantity: $availableQuantity, soldQuantity: $soldQuantity, description: $description, stripePriceId: $stripePriceId, isRefundable: $isRefundable, saleStartDate: $saleStartDate, saleEndDate: $saleEndDate, isSoldOut: $isSoldOut)';
+    return 'Ticket(ticketId: $ticketId, eventId: $eventId, ticketType: $ticketType, ticketName: $ticketName, ticketPrice: $ticketPrice, availableQuantity: $availableQuantity, soldQuantity: $soldQuantity, description: $description, stripePriceId: $stripePriceId, isRefundable: $isRefundable, ticketSaleStartDateTime: $ticketSaleStartDateTime, ticketSaleEndDateTime: $ticketSaleEndDateTime, isSoldOut: $isSoldOut)';
   }
 
   @override
@@ -304,6 +322,8 @@ class _$TicketImpl implements _Ticket {
             (identical(other.ticketId, ticketId) ||
                 other.ticketId == ticketId) &&
             (identical(other.eventId, eventId) || other.eventId == eventId) &&
+            (identical(other.ticketType, ticketType) ||
+                other.ticketType == ticketType) &&
             (identical(other.ticketName, ticketName) ||
                 other.ticketName == ticketName) &&
             (identical(other.ticketPrice, ticketPrice) ||
@@ -318,10 +338,11 @@ class _$TicketImpl implements _Ticket {
                 other.stripePriceId == stripePriceId) &&
             (identical(other.isRefundable, isRefundable) ||
                 other.isRefundable == isRefundable) &&
-            (identical(other.saleStartDate, saleStartDate) ||
-                other.saleStartDate == saleStartDate) &&
-            (identical(other.saleEndDate, saleEndDate) ||
-                other.saleEndDate == saleEndDate) &&
+            (identical(
+                    other.ticketSaleStartDateTime, ticketSaleStartDateTime) ||
+                other.ticketSaleStartDateTime == ticketSaleStartDateTime) &&
+            (identical(other.ticketSaleEndDateTime, ticketSaleEndDateTime) ||
+                other.ticketSaleEndDateTime == ticketSaleEndDateTime) &&
             (identical(other.isSoldOut, isSoldOut) ||
                 other.isSoldOut == isSoldOut));
   }
@@ -332,6 +353,7 @@ class _$TicketImpl implements _Ticket {
       runtimeType,
       ticketId,
       eventId,
+      ticketType,
       ticketName,
       ticketPrice,
       availableQuantity,
@@ -339,8 +361,8 @@ class _$TicketImpl implements _Ticket {
       description,
       stripePriceId,
       isRefundable,
-      saleStartDate,
-      saleEndDate,
+      ticketSaleStartDateTime,
+      ticketSaleEndDateTime,
       isSoldOut);
 
   /// Create a copy of Ticket
@@ -363,6 +385,7 @@ abstract class _Ticket implements Ticket {
   const factory _Ticket(
       {required final String ticketId,
       required final String eventId,
+      required final String ticketType,
       required final String ticketName,
       required final double ticketPrice,
       required final int availableQuantity,
@@ -370,8 +393,8 @@ abstract class _Ticket implements Ticket {
       final String? description,
       final String? stripePriceId,
       final bool isRefundable,
-      final DateTime? saleStartDate,
-      final DateTime? saleEndDate,
+      final DateTime? ticketSaleStartDateTime,
+      final DateTime? ticketSaleEndDateTime,
       final bool isSoldOut}) = _$TicketImpl;
 
   factory _Ticket.fromJson(Map<String, dynamic> json) = _$TicketImpl.fromJson;
@@ -380,6 +403,8 @@ abstract class _Ticket implements Ticket {
   String get ticketId;
   @override
   String get eventId;
+  @override
+  String get ticketType; // Free, Paid or Donation
   @override
   String get ticketName;
   @override
@@ -395,9 +420,9 @@ abstract class _Ticket implements Ticket {
   @override
   bool get isRefundable;
   @override
-  DateTime? get saleStartDate;
+  DateTime? get ticketSaleStartDateTime;
   @override
-  DateTime? get saleEndDate;
+  DateTime? get ticketSaleEndDateTime;
   @override
   bool get isSoldOut;
 

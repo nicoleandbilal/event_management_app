@@ -1,10 +1,18 @@
+// create_event_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_bloc.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_event.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_state.dart';
+import 'package:organizer_app/create_event/ticketing/bloc/ticket_details_bloc.dart';
 import 'package:organizer_app/create_event/event_details/create_event_details_form.dart';
+import 'package:organizer_app/create_event/ticketing/bloc/ticket_details_event.dart';
 import 'package:organizer_app/create_event/ticketing/create_ticketing_form.dart';
+import 'package:organizer_app/create_event/ticketing/add_ticket_dialog.dart';
 import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
 
@@ -28,57 +36,67 @@ class CreateEventScreenState extends State<CreateEventScreen> {
     _initializeFormDraftEvent();
   }
 
-  // Initializes a new draft event and assigns an event ID
+  // Initializes a new draft event by triggering EventDetailsBloc
   void _initializeFormDraftEvent() {
     final createdByUserId = context.read<AuthService>().getCurrentUserId();
     if (createdByUserId != null) {
-      context.read<CreateEventFormBloc>().add(InitializeDraftEvent(
+      context.read<EventDetailsBloc>().add(InitializeDraftEvent(
         brandId: widget.brandId,
         createdByUserId: createdByUserId,
       ));
     }
   }
 
-  // Collects and updates form page data in Firebase without navigation
-  void updateFormPageData() {
-    final formData = CreateEventDetailsForm.collectFormData();
-    context.read<CreateEventFormBloc>().add(UpdateFormPageData(formData));
-  }
-
-  // Handles navigation to the next page if not on the last page
+  // Navigates to the next page if the current page is valid
   void _navigateToNextPage() {
     if (_currentPage < 1) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
       setState(() => _currentPage += 1);
     }
   }
 
-  // Finalizes the form by submitting it
-  void submitForm() {
-    context.read<CreateEventFormBloc>().add(const SubmitForm());
+  // Finalizes the form by submitting it through CreateEventFormBloc
+  void _submitForm() {
+    context.read<CreateEventFormBloc>().add(CreateEventFormSubmitEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CreateEventFormBloc, CreateEventFormState>(
-      listener: (context, state) {
-        if (state is FormDraftInitialized) {
-          setState(() => _eventId = state.eventId);
-        } else if (state is FormFailure) {
-          _showErrorDialog(state.error);
-        } else if (state is FormSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Event created successfully!')),
-          );
-          Navigator.pop(context);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<EventDetailsBloc, EventDetailsState>(
+          listener: (context, state) {
+            if (state is EventDraftInitialized) {
+              setState(() => _eventId = state.eventId);
+            } else if (state is EventDetailsFailure) {
+              _showErrorDialog(state.error);
+            }
+          },
+        ),
+        BlocListener<CreateEventFormBloc, CreateEventFormState>(
+          listener: (context, state) {
+            if (state is CreateEventFormSubmissionFailure) {
+              _showErrorDialog(state.error);
+            } else if (state is CreateEventFormSubmissionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Event created successfully!')),
+              );
+              Navigator.pop(context);
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Create Event'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: _currentPage == 0 ? Navigator.of(context).pop : () => Navigator.pop(context),
+            onPressed: _currentPage == 0
+                ? Navigator.of(context).pop
+                : () => Navigator.pop(context),
           ),
         ),
         body: _eventId != null
@@ -108,15 +126,11 @@ class CreateEventScreenState extends State<CreateEventScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Save button: triggers form update and pops to the previous screen
               Expanded(
                 child: CustomPaddingButton(
                   onPressed: () {
-                    updateFormPageData(); // Save to Firebase
+                    _saveDraft(); // Save current form page data
                     Navigator.pop(context); // Return to previous screen
-                          ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Draft saved successfully')),
-      );
                   },
                   label: 'Save',
                   backgroundColor: Colors.grey.shade800,
@@ -124,18 +138,17 @@ class CreateEventScreenState extends State<CreateEventScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              // Next or Submit button: updates form and either proceeds to the next page or submits
               Expanded(
                 child: CustomPaddingButton(
                   onPressed: () {
-                    updateFormPageData(); // Save to Firebase
+                    _saveDraft(); // Save current form page data
                     if (_currentPage < 1) {
                       _navigateToNextPage(); // Go to the next page
                     } else {
-                      submitForm(); // Submit the form on the last page
+                      _submitForm(); // Submit the form on the last page
                     }
                   },
-                  label: _currentPage == 1 ? 'Submit' : 'Next', // Conditionally change the label
+                  label: _currentPage == 1 ? 'Submit' : 'Next',
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                 ),
@@ -144,6 +157,21 @@ class CreateEventScreenState extends State<CreateEventScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // Saves draft data of the current page
+  void _saveDraft() {
+    if (_currentPage == 0) {
+      final formData = CreateEventDetailsForm.collectFormData();
+      context.read<EventDetailsBloc>().add(SaveEventDetailsEvent(formData));
+    } else if (_currentPage == 1) {
+      // Collect ticket data directly from AddTicketDialog
+      final ticketData = AddTicketDialog(eventId: _eventId!).createState().getTicketData();
+      context.read<TicketDetailsBloc>().add(SaveTicketDetailsEvent(ticket: ticketData));
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Draft saved successfully')),
     );
   }
 

@@ -9,6 +9,7 @@ part of 'ticket_model.dart';
 _$TicketImpl _$$TicketImplFromJson(Map<String, dynamic> json) => _$TicketImpl(
       ticketId: json['ticketId'] as String,
       eventId: json['eventId'] as String,
+      ticketType: json['ticketType'] as String,
       ticketName: json['ticketName'] as String,
       ticketPrice: (json['ticketPrice'] as num).toDouble(),
       availableQuantity: (json['availableQuantity'] as num).toInt(),
@@ -16,12 +17,12 @@ _$TicketImpl _$$TicketImplFromJson(Map<String, dynamic> json) => _$TicketImpl(
       description: json['description'] as String?,
       stripePriceId: json['stripePriceId'] as String?,
       isRefundable: json['isRefundable'] as bool? ?? true,
-      saleStartDate: json['saleStartDate'] == null
+      ticketSaleStartDateTime: json['ticketSaleStartDateTime'] == null
           ? null
-          : DateTime.parse(json['saleStartDate'] as String),
-      saleEndDate: json['saleEndDate'] == null
+          : DateTime.parse(json['ticketSaleStartDateTime'] as String),
+      ticketSaleEndDateTime: json['ticketSaleEndDateTime'] == null
           ? null
-          : DateTime.parse(json['saleEndDate'] as String),
+          : DateTime.parse(json['ticketSaleEndDateTime'] as String),
       isSoldOut: json['isSoldOut'] as bool? ?? false,
     );
 
@@ -29,6 +30,7 @@ Map<String, dynamic> _$$TicketImplToJson(_$TicketImpl instance) =>
     <String, dynamic>{
       'ticketId': instance.ticketId,
       'eventId': instance.eventId,
+      'ticketType': instance.ticketType,
       'ticketName': instance.ticketName,
       'ticketPrice': instance.ticketPrice,
       'availableQuantity': instance.availableQuantity,
@@ -36,7 +38,9 @@ Map<String, dynamic> _$$TicketImplToJson(_$TicketImpl instance) =>
       'description': instance.description,
       'stripePriceId': instance.stripePriceId,
       'isRefundable': instance.isRefundable,
-      'saleStartDate': instance.saleStartDate?.toIso8601String(),
-      'saleEndDate': instance.saleEndDate?.toIso8601String(),
+      'ticketSaleStartDateTime':
+          instance.ticketSaleStartDateTime?.toIso8601String(),
+      'ticketSaleEndDateTime':
+          instance.ticketSaleEndDateTime?.toIso8601String(),
       'isSoldOut': instance.isSoldOut,
     };

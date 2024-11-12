@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/config/router.dart';
 import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
 import 'package:organizer_app/create_event/event_cover_image/event_image_upload_service.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_bloc.dart';
+import 'package:organizer_app/create_event/ticketing/bloc/ticket_details_bloc.dart';
 import 'package:organizer_app/event_list/event_filter_bloc.dart';
 import 'package:organizer_app/choose_brand/choose_brand_dropdown_bloc.dart';
 import 'package:shared/repositories/brand_repository.dart';
@@ -23,7 +25,7 @@ import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();  // Initialize Firebase
+  await Firebase.initializeApp(); // Initialize Firebase
   runApp(EventManagementApp());
 }
 
@@ -36,54 +38,59 @@ class EventManagementApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        // Provide the required repositories for the app
+        // Provide repositories for the app
         RepositoryProvider<AuthRepository>(
           create: (context) => AuthRepository(),
         ),
         RepositoryProvider<AuthService>(
           create: (context) => AuthService(
-            context.read<AuthRepository>(), // Provide the AuthRepository instance to AuthService
+            context.read<AuthRepository>(), // AuthRepository for AuthService
           ),
         ),
         RepositoryProvider<UserRepository>(
           create: (context) => UserRepository(
-            firestore: FirebaseFirestore.instance, // Initialize Firestore for UserRepository
+            firestore: FirebaseFirestore.instance, // Firestore for UserRepository
           ),
         ),
         RepositoryProvider<SearchRepository>(
           create: (context) => SearchRepository(
-            firestore: FirebaseFirestore.instance, // Initialize Firestore for SearchRepository
+            firestore: FirebaseFirestore.instance, // Firestore for SearchRepository
           ),
         ),
         RepositoryProvider<EventRepository>(
           create: (context) => EventRepository(
-            firestore: FirebaseFirestore.instance, // Initialize Firestore for EventRepository
+            firestore: FirebaseFirestore.instance, // Firestore for EventRepository
           ),
         ),
         RepositoryProvider<BrandRepository>(
           create: (context) => BrandRepository(
-            firestore: FirebaseFirestore.instance, // Initialize Firestore for BrandRepository
+            firestore: FirebaseFirestore.instance, // Firestore for BrandRepository
+          ),
+        ),
+        RepositoryProvider<TicketRepository>(
+          create: (context) => TicketRepository(
+            firestore: FirebaseFirestore.instance, // Firestore for TicketRepository
           ),
         ),
         RepositoryProvider<ImageRepository>(
           create: (context) => ImageRepository(
-            storage: FirebaseStorage.instance, // Initialize FirebaseStorage for ImageRepository
+            storage: FirebaseStorage.instance, // FirebaseStorage for ImageRepository
           ),
         ),
         RepositoryProvider<ImageUploadService>(
           create: (context) => ImageUploadService(
-            context.read<ImageRepository>(),  // Inject ImageRepository
-            _logger,  // Inject Logger instance
+            context.read<ImageRepository>(), // Inject ImageRepository
+            _logger, // Inject Logger instance
           ),
         ),
       ],
       child: MultiBlocProvider(
         providers: [
-          // Provide the necessary Blocs for the app
+          // Provide necessary Blocs for the app
           BlocProvider<AuthBloc>(
             create: (context) => AuthBloc(
               authRepository: context.read<AuthRepository>(),
-            )..add(AppStarted()),  // Trigger initial authentication check
+            )..add(AppStarted()), // Trigger initial auth check
           ),
           BlocProvider<SearchBloc>(
             create: (context) => SearchBloc(
@@ -98,25 +105,35 @@ class EventManagementApp extends StatelessWidget {
           BlocProvider<ChooseBrandDropdownBloc>(
             create: (context) => ChooseBrandDropdownBloc(
               brandRepository: context.read<BrandRepository>(),
-              authService: context.read<AuthService>(), // Provide authService if required
+              authService: context.read<AuthService>(), // Provide AuthService if required
+            ),
+          ),
+          BlocProvider<EventDetailsBloc>(
+            create: (context) => EventDetailsBloc(
+              eventRepository: context.read<EventRepository>(),
+              imageRepository: context.read<ImageRepository>(),
+            ),
+          ),
+          BlocProvider<TicketDetailsBloc>(
+            create: (context) => TicketDetailsBloc(
+              ticketRepository: context.read<TicketRepository>(),
             ),
           ),
           BlocProvider<CreateEventFormBloc>(
             create: (context) => CreateEventFormBloc(
-              imageUploadService: context.read<ImageUploadService>(), // Inject ImageUploadService
-              eventRepository: context.read<EventRepository>(), // Inject EventRepository
-              ticketRepository: context.read<TicketRepository>(), // Inject EventRepository
+              eventDetailsBloc: context.read<EventDetailsBloc>(), // Inject EventDetailsBloc
+              ticketDetailsBloc: context.read<TicketDetailsBloc>(), // Inject TicketDetailsBloc
             ),
           ),
         ],
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            _logger.d('AuthBloc state changed to: $state');  // Log AuthBloc state changes for debugging
+            _logger.d('AuthBloc state changed to: $state'); // Log AuthBloc state changes
             return MaterialApp.router(
               title: 'Event Management App',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
-              routerConfig: createGoRouter(context, state),  // Configure the app's router based on AuthBloc state
+              routerConfig: createGoRouter(context, state), // Configure router based on AuthBloc state
             );
           },
         ),

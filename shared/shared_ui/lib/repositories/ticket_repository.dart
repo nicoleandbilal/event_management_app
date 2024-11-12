@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared/models/ticket_mapper.dart';
 import 'package:shared/models/ticket_model.dart';
 
-
 class TicketRepository {
   final FirebaseFirestore firestore;
 
@@ -19,9 +18,45 @@ class TicketRepository {
           .collection('tickets')
           .doc(ticket.ticketId);
 
-      await ticketRef.set(TicketMapper.toFirestore(ticket));
+      await ticketRef.set(TomaTicketMapper.toFirestore(ticket));
     } catch (e) {
       throw Exception('Failed to save ticket: $e');
+    }
+  }
+
+  // Create a draft ticket with a "draft" status
+  Future<String> createDraftTicket(String eventId, Ticket ticket) async {
+    try {
+      final ticketCollectionRef = firestore
+          .collection('events')
+          .doc(eventId)
+          .collection('tickets');
+
+      final docRef = await ticketCollectionRef.add({
+        ...TomaTicketMapper.toFirestore(ticket),
+        'status': 'draft',  // Ensure status is set to draft on creation
+        'createdAt': Timestamp.now(),
+        'updatedAt': null,
+      });
+      return docRef.id; // Return the Firestore-generated ticket ID
+    } catch (e) {
+      throw Exception('Failed to create draft ticket: $e');
+    }
+  }
+
+  // Updates a draft ticket with partial data (e.g., from form progress) and changes status to 'draft'
+  Future<void> updateDraftTicket(String eventId, String ticketId, Map<String, dynamic> updatedData) async {
+    try {
+      updatedData['status'] = 'draft';  // Set status to 'draft'
+      updatedData['updatedAt'] = Timestamp.fromDate(DateTime.now());  // Update timestamp
+      await firestore
+          .collection('events')
+          .doc(eventId)
+          .collection('tickets')
+          .doc(ticketId)
+          .update(updatedData);
+    } catch (e) {
+      throw Exception('Failed to update draft ticket: $e');
     }
   }
 
@@ -34,7 +69,7 @@ class TicketRepository {
           .collection('tickets')
           .get();
 
-      return ticketCollection.docs.map((doc) => TicketMapper.fromFirestore(doc)).toList();
+      return ticketCollection.docs.map((doc) => TomaTicketMapper.fromFirestore(doc)).toList();
     } catch (e) {
       throw Exception('Failed to fetch tickets: $e');
     }

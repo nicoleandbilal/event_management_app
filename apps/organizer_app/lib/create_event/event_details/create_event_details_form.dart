@@ -3,8 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared/widgets/date_and_time_picker.dart';
 import 'package:organizer_app/create_event/event_cover_image/create_event_image_upload.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_bloc.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_event.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_state.dart';
+import 'package:shared/widgets/date_and_time_picker.dart';
 import 'package:shared/widgets/custom_input_box.dart';
 
 class CreateEventDetailsForm extends StatelessWidget {
@@ -22,14 +25,12 @@ class CreateEventDetailsForm extends StatelessWidget {
   static TimeOfDay? _endTime;
   static String? _selectedCategory;
 
-  // Constructor with required parameters
   const CreateEventDetailsForm({
     super.key,
     required this.brandId,
     required this.eventId,
   });
 
-  // Collect form data for Bloc dispatch in the main screen
   static Map<String, dynamic> collectFormData() {
     final startDateTime = DateTime(
       _startDate!.year,
@@ -63,80 +64,97 @@ class CreateEventDetailsForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return BlocListener<EventDetailsBloc, EventDetailsState>(
+      listener: (context, state) {
+        if (state is EventDetailsFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${state.error}')),
+          );
+        }
+      },
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Event Details',
+                style: GoogleFonts.raleway(
+                  fontSize: 24.0, 
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: Colors.grey),
+              const SizedBox(height: 20),
+              _buildTextInput(
+                label: 'Event Name',
+                placeholder: 'Enter event name',
+                controller: _eventNameController,
+                validator: (value) => value?.isEmpty == true ? 'Please enter event name' : null,
+              ),
+              const SizedBox(height: 16),
 
-            Text(
-              'Event Details',
-              style: GoogleFonts.raleway(
-                fontSize: 24.0, 
-                fontWeight: FontWeight.bold),
-            ),
+              // Event Cover Image Upload
+              CreateEventImageUpload(eventId: eventId),
 
-                const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
-                const Divider(height: 1, color: Colors.grey),
+              _buildTextInput(
+                label: 'Event Description',
+                placeholder: 'Enter event description',
+                controller: _descriptionController,
+                validator: (value) => value?.isEmpty == true ? 'Please enter event description' : null,
+              ),
+              const SizedBox(height: 16),
 
-                const SizedBox(height: 20),
+              CreateEventDatePicker(
+                label: "Start",
+                date: _startDate,
+                time: _startTime,
+                onDatePicked: (pickedDate) => _startDate = pickedDate,
+                onTimePicked: (pickedTime) => _startTime = pickedTime,
+              ),
+              const SizedBox(height: 16),
 
-            _buildTextInput(
-              label: 'Event Name',
-              placeholder: 'Enter event name',
-              controller: _eventNameController,
-              validator: (value) => value?.isEmpty == true ? 'Please enter event name' : null,
-            ),
-            const SizedBox(height: 16),
+              CreateEventDatePicker(
+                label: "End",
+                date: _endDate,
+                time: _endTime,
+                onDatePicked: (pickedDate) => _endDate = pickedDate,
+                onTimePicked: (pickedTime) => _endTime = pickedTime,
+              ),
+              const SizedBox(height: 16),
 
-            CreateEventImageUpload(imageUploadService: context.read(), eventId: eventId), // Use eventId here
+              _buildCategoryDropdown(),
+              const SizedBox(height: 16),
 
-            const SizedBox(height: 16),
+              _buildTextInput(
+                label: 'Choose Venue',
+                placeholder: 'Enter venue',
+                controller: _venueController,
+                validator: (value) => value?.isEmpty == true ? 'Please enter venue' : null,
+              ),
+              const SizedBox(height: 24),
 
-            _buildTextInput(
-              label: 'Event Description',
-              placeholder: 'Enter event description',
-              controller: _descriptionController,
-              validator: (value) => value?.isEmpty == true ? 'Please enter event description' : null,
-            ),
-
-            const SizedBox(height: 16),
-
-            CreateEventDatePicker(
-              label: "Start",
-              date: _startDate,
-              time: _startTime,
-              onDatePicked: (pickedDate) => _startDate = pickedDate,
-              onTimePicked: (pickedTime) => _startTime = pickedTime,
-            ),
-
-            const SizedBox(height: 16),
-
-            CreateEventDatePicker(
-              label: "End",
-              date: _endDate,
-              time: _endTime,
-              onDatePicked: (pickedDate) => _endDate = pickedDate,
-              onTimePicked: (pickedTime) => _endTime = pickedTime,
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildCategoryDropdown(),
-
-            const SizedBox(height: 16),
-
-            _buildTextInput(
-              label: 'Choose Venue',
-              placeholder: 'Enter venue',
-              controller: _venueController,
-              validator: (value) => value?.isEmpty == true ? 'Please enter venue' : null,
-            ),
-
-            const SizedBox(height: 24),
-          ],
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_validateForm()) {
+                      context.read<EventDetailsBloc>().add(
+                        SaveEventDetailsEvent(collectFormData()),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Event details saved successfully')),
+                      );
+                    }
+                  },
+                  child: const Text('Save Event Details'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -156,11 +174,11 @@ class CreateEventDetailsForm extends StatelessWidget {
         CustomInputBox(
           child: TextFormField(
             controller: controller,
-            decoration: InputDecoration(hintText: placeholder,
-              hintStyle: const TextStyle(
-                fontWeight: FontWeight.w300, 
-                color: Colors.black),
-              border: InputBorder.none,),
+            decoration: InputDecoration(
+              hintText: placeholder,
+              hintStyle: const TextStyle(fontWeight: FontWeight.w300, color: Colors.black),
+              border: InputBorder.none,
+            ),
             validator: validator,
           ),
         ),

@@ -1,22 +1,19 @@
+// create_event_image_upload.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:organizer_app/create_event/blocs/create_event_form_bloc.dart';
-import 'package:organizer_app/create_event/blocs/create_event_form_event.dart';
-import 'package:organizer_app/create_event/blocs/create_event_form_state.dart';
-import 'package:organizer_app/create_event/event_cover_image/event_image_upload_service.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_bloc.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_event.dart';
+import 'package:organizer_app/create_event/event_details/bloc/event_details_state.dart';
 
-/// Widget that handles the image upload and display functionality for event cover images.
-/// Allows users to select, crop, and upload images, with options to delete them.
 class CreateEventImageUpload extends StatefulWidget {
-  final ImageUploadService imageUploadService; // Image upload service for handling uploads
-  final String eventId; // Event ID to associate with the uploaded images
+  final String eventId; // Add the eventId parameter to allow passing the event ID
 
   const CreateEventImageUpload({
     super.key,
-    required this.imageUploadService,
     required this.eventId,
   });
 
@@ -25,13 +22,11 @@ class CreateEventImageUpload extends StatefulWidget {
 }
 
 class CreateEventImageUploadState extends State<CreateEventImageUpload> {
-  final ImagePicker _picker = ImagePicker(); // ImagePicker instance for selecting images
-  File? _fullImageFile; // Full-size image file selected by the user
-  File? _croppedImageFile; // Cropped version of the selected image
-  bool _isUploading = false; // Boolean to track upload status
+  final ImagePicker _picker = ImagePicker();
+  File? _fullImageFile;
+  File? _croppedImageFile;
+  bool _isUploading = false;
 
-  /// Method to handle image picking and cropping. Opens the gallery, allows cropping,
-  /// and saves the cropped file locally.
   Future<void> _pickAndCropImage(BuildContext context) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -40,9 +35,9 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
         maxHeight: 1080,
       );
 
-      if (pickedFile == null) return; // If no image was selected, exit
+      if (pickedFile == null) return;
 
-      final File imageFile = File(pickedFile.path); // Convert the picked file to a File object
+      final File imageFile = File(pickedFile.path);
 
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
@@ -51,19 +46,6 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
         maxWidth: 1600,
         maxHeight: 900,
         compressFormat: ImageCompressFormat.jpg,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Image',
-            toolbarColor: Colors.deepOrange,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.ratio16x9,
-            lockAspectRatio: true,
-          ),
-          IOSUiSettings(
-            title: 'Crop Image',
-            aspectRatioLockEnabled: true,
-          ),
-        ],
       );
 
       if (croppedFile != null) {
@@ -71,14 +53,13 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
           _fullImageFile = imageFile;
           _croppedImageFile = File(croppedFile.path);
         });
-        await _uploadImages(context); // Trigger image upload
+        await _uploadImages(context);
       }
     } catch (e) {
-      _showError(context, 'Error selecting or cropping image: $e'); // Show an error if image picking or cropping fails
+      _showError(context, 'Error selecting or cropping image: $e');
     }
   }
 
-  /// Handles uploading both the full and cropped images. Dispatches URLs to the Bloc upon success.
   Future<void> _uploadImages(BuildContext context) async {
     if (_fullImageFile == null || _croppedImageFile == null) return;
 
@@ -87,15 +68,14 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
     });
 
     try {
-      context.read<CreateEventFormBloc>().add(
-        UpdateImageUrls(
+      context.read<EventDetailsBloc>().add(
+        UploadEventImageEvent(
           fullImage: _fullImageFile!,
           croppedImage: _croppedImageFile!,
-          eventId: widget.eventId,
         ),
       );
     } catch (e) {
-      _showError(context, e is ImageUploadException ? e.message : 'Error uploading images: $e');
+      _showError(context, 'Error uploading images: $e');
     } finally {
       setState(() {
         _isUploading = false;
@@ -103,16 +83,14 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
     }
   }
 
-  /// Deletes the images by clearing local files and dispatching to the Bloc.
   void _deleteImages(BuildContext context) {
-    context.read<CreateEventFormBloc>().add(const DeleteImageUrls());
+    context.read<EventDetailsBloc>().add(DeleteEventImageEvent());
     setState(() {
       _fullImageFile = null;
       _croppedImageFile = null;
     });
   }
 
-  /// Shows error messages to the user using a SnackBar.
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
@@ -120,13 +98,12 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
     ));
   }
 
-  /// Builds the widget UI: shows the image, delete button, or placeholder based on state.
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CreateEventFormBloc, CreateEventFormState>(
+    return BlocBuilder<EventDetailsBloc, EventDetailsState>(
       builder: (context, state) {
-        if (_isUploading) {
-          return const Center(child: CircularProgressIndicator()); // Show a loading indicator if uploading
+        if (_isUploading || state is EventImageUploading) {
+          return const Center(child: CircularProgressIndicator());
         } else if (_croppedImageFile != null) {
           return Stack(
             children: [
