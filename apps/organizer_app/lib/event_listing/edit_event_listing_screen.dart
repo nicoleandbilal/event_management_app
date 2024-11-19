@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared/widgets/date_and_time_picker.dart'; // Updated Date and Time Picker
+import 'package:organizer_app/event_creation/event_cover_image/event_image_upload_service.dart';
+import 'package:shared/date_and_time_picker/date_and_time_picker.dart';
 import 'package:shared/widgets/custom_input_box.dart'; // CustomInputBox for consistency
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
 
-  const EditEventScreen({super.key, required this.eventId});
+  const EditEventScreen({super.key, required this.eventId, required ImageUploadService imageUploadService});
 
   @override
   EditEventScreenState createState() => EditEventScreenState();

@@ -5,23 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:organizer_app/create_event/event_details/bloc/event_details_bloc.dart';
-import 'package:organizer_app/create_event/event_details/bloc/event_details_event.dart';
-import 'package:organizer_app/create_event/event_details/bloc/event_details_state.dart';
+import 'package:organizer_app/event_creation/basic_details/bloc/basic_details_bloc.dart';
+import 'package:organizer_app/event_creation/basic_details/bloc/basic_details_event.dart';
+import 'package:organizer_app/event_creation/basic_details/bloc/basic_details_state.dart';
 
 class CreateEventImageUpload extends StatefulWidget {
-  final String eventId; // Add the eventId parameter to allow passing the event ID
+  final String eventId;
 
   const CreateEventImageUpload({
-    super.key,
+    Key? key,
     required this.eventId,
-  });
+  }) : super(key: key);
 
   @override
-  CreateEventImageUploadState createState() => CreateEventImageUploadState();
+  _CreateEventImageUploadState createState() => _CreateEventImageUploadState();
 }
 
-class CreateEventImageUploadState extends State<CreateEventImageUpload> {
+class _CreateEventImageUploadState extends State<CreateEventImageUpload> {
   final ImagePicker _picker = ImagePicker();
   File? _fullImageFile;
   File? _croppedImageFile;
@@ -29,25 +29,21 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
 
   Future<void> _pickAndCropImage(BuildContext context) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(
+      final pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1920,
         maxHeight: 1080,
       );
-
       if (pickedFile == null) return;
 
       final File imageFile = File(pickedFile.path);
-
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
         aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 9),
         compressQuality: 85,
         maxWidth: 1600,
         maxHeight: 900,
-        compressFormat: ImageCompressFormat.jpg,
       );
-
       if (croppedFile != null) {
         setState(() {
           _fullImageFile = imageFile;
@@ -68,8 +64,8 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
     });
 
     try {
-      context.read<EventDetailsBloc>().add(
-        UploadEventImageEvent(
+      context.read<BasicDetailsBloc>().add(
+        UploadEventImage(
           fullImage: _fullImageFile!,
           croppedImage: _croppedImageFile!,
         ),
@@ -84,7 +80,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
   }
 
   void _deleteImages(BuildContext context) {
-    context.read<EventDetailsBloc>().add(DeleteEventImageEvent());
+    context.read<BasicDetailsBloc>().add(DeleteEventImage());
     setState(() {
       _fullImageFile = null;
       _croppedImageFile = null;
@@ -100,7 +96,7 @@ class CreateEventImageUploadState extends State<CreateEventImageUpload> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EventDetailsBloc, EventDetailsState>(
+    return BlocBuilder<BasicDetailsBloc, BasicDetailsState>(
       builder: (context, state) {
         if (_isUploading || state is EventImageUploading) {
           return const Center(child: CircularProgressIndicator());

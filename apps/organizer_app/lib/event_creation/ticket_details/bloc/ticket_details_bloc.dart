@@ -1,18 +1,18 @@
-// ticket_details_bloc.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared/repositories/ticket_repository.dart';
+import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_event.dart';
+import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_state.dart';
 import 'package:shared/models/ticket_model.dart';
-import 'ticket_details_event.dart';
-import 'ticket_details_state.dart';
+import 'package:shared/repositories/ticket_repository.dart';
 
 class TicketDetailsBloc extends Bloc<TicketDetailsEvent, TicketDetailsState> {
   final TicketRepository ticketRepository;
   Ticket? draftTicket; // Holds the current draft ticket
+  List<Ticket> ticketList = []; // Tracks all tickets for the event
 
   TicketDetailsBloc({required this.ticketRepository}) : super(TicketDetailsInitial()) {
     on<InitializeDraftTicket>(_onInitializeDraftTicket);
     on<SaveTicketDetailsEvent>(_onSaveTicketDetailsEvent);
+    on<AddTicketToListEvent>(_onAddTicketToListEvent);
   }
 
   // Initializes a ticket draft
@@ -48,11 +48,18 @@ class TicketDetailsBloc extends Bloc<TicketDetailsEvent, TicketDetailsState> {
       draftTicket = event.ticket.copyWith(ticketId: draftTicket!.ticketId);
 
       try {
-        await ticketRepository.updateDraftTicket(draftTicket!.eventId, draftTicket!.ticketId, draftTicket!.toJson());
+        await ticketRepository.updateDraftTicket(draftTicket!.eventId, draftTicket!);
         emit(TicketDetailsSaved()); // Emit saved state
       } catch (e) {
         emit(TicketDetailsFailure("Failed to save ticket details: $e"));
       }
     }
+  }
+
+  // Adds ticket to list and resets draft
+  void _onAddTicketToListEvent(AddTicketToListEvent event, Emitter<TicketDetailsState> emit) {
+    ticketList.add(event.ticket);
+    draftTicket = null;
+    emit(TicketAddedToList(ticketList: ticketList));
   }
 }

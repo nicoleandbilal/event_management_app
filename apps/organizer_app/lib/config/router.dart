@@ -1,12 +1,11 @@
 // lib/config/router.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/create_event/event_routes.dart';
+import 'package:organizer_app/event_creation/event_routes.dart';
 import 'package:organizer_app/main_and_navigation/main_navigation_bloc.dart';
-import 'package:organizer_app/main_and_navigation/navigation_routes.dart';          // Home routes
-import 'package:organizer_app/main_and_navigation/main_screen.dart';         // Main screen layout
+import 'package:organizer_app/main_and_navigation/navigation_routes.dart';
+import 'package:organizer_app/main_and_navigation/main_screen.dart';
 import 'package:organizer_app/profile/profile_routes.dart';
 import 'package:organizer_app/widgets/error_dialog.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
@@ -14,7 +13,7 @@ import 'package:shared/authentication/auth_routes.dart';
 
 GoRouter createGoRouter(BuildContext context, AuthState authState) {
   return GoRouter(
-    initialLocation: '/login',  // Default starting route
+    initialLocation: '/login', // Default starting route
     redirect: (context, state) {
       final isAuthenticated = authState is Authenticated;
       final unauthenticatedPaths = ['/login', '/register', '/forgot_password'];
@@ -30,27 +29,24 @@ GoRouter createGoRouter(BuildContext context, AuthState authState) {
         return '/home';
       }
 
-      return null;  // No redirect needed
+      return null; // No redirect needed
     },
     routes: [
-      ...authRoutes,  // Authentication-related routes (/login, /register, etc.)
+      ...authRoutes, // Authentication-related routes
       ShellRoute(
         builder: (context, state, child) {
           return BlocProvider(
-            create: (context) => MainNavigationBloc(), // Bloc only for MainScreen and tabs
-            child: MainScreen(child: child),
+            create: (context) => MainNavigationBloc(), // Bloc for MainScreen tabs
+            child: MainScreen(child: child), // Main screen layout
           );
         },
         routes: [
-          ...navigationRoutes,  // All home-related routes (/home, /search, etc.)
-          ...profileRoutes,
+          ...navigationRoutes, // Home-related routes
+          ...profileRoutes,    // Profile-related routes
         ],
       ),
-      // Full-screen routes (not wrapped with MainScreen)
-
-      ...eventRoutes,
-
-      // Error handling route
+      ...eventRoutes, // Event-related routes, including modal and list
+      // Error route
       GoRoute(
         path: '/error',
         pageBuilder: (context, state) {

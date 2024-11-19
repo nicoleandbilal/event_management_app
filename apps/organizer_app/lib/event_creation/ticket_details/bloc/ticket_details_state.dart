@@ -29,6 +29,16 @@ class TicketDraftInitialized extends TicketDetailsState {
 // State when ticket details are saved successfully
 class TicketDetailsSaved extends TicketDetailsState {}
 
+// State when a ticket is added to the list
+class TicketAddedToList extends TicketDetailsState {
+  final List<Ticket> ticketList;
+
+  const TicketAddedToList({required this.ticketList});
+
+  @override
+  List<Object?> get props => [ticketList];
+}
+
 // Error state in ticket details
 class TicketDetailsFailure extends TicketDetailsState {
   final String error;

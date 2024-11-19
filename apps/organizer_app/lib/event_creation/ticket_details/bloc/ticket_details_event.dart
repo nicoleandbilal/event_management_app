@@ -29,3 +29,13 @@ class SaveTicketDetailsEvent extends TicketDetailsEvent {
   @override
   List<Object?> get props => [ticket];
 }
+
+// Add ticket to the ticket list
+class AddTicketToListEvent extends TicketDetailsEvent {
+  final Ticket ticket;
+
+  const AddTicketToListEvent({required this.ticket});
+
+  @override
+  List<Object?> get props => [ticket];
+}

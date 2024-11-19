@@ -1,7 +1,7 @@
 // create_ticketing_form.dart
 
 import 'package:flutter/material.dart';
-import 'package:organizer_app/create_event/ticketing/add_ticket_dialog.dart';
+import 'package:organizer_app/event_creation/ticket_details/add_ticket_dialog.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
 import 'package:shared/models/ticket_model.dart';
 

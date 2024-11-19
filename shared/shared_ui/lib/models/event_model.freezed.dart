@@ -31,7 +31,8 @@ mixin _$Event {
   String get venue => throw _privateConstructorUsedError;
   String? get eventCoverImageFullUrl => throw _privateConstructorUsedError;
   String? get eventCoverImageCroppedUrl => throw _privateConstructorUsedError;
-  String get status => throw _privateConstructorUsedError;
+  String get status =>
+      throw _privateConstructorUsedError; // pre-draft, draft, live, cancelled, past
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   DateTime? get saleStartDate => throw _privateConstructorUsedError;
@@ -344,6 +345,7 @@ class _$EventImpl implements _Event {
   final String? eventCoverImageCroppedUrl;
   @override
   final String status;
+// pre-draft, draft, live, cancelled, past
   @override
   final DateTime createdAt;
   @override
@@ -475,7 +477,7 @@ abstract class _Event implements Event {
   @override
   String? get eventCoverImageCroppedUrl;
   @override
-  String get status;
+  String get status; // pre-draft, draft, live, cancelled, past
   @override
   DateTime get createdAt;
   @override

@@ -1,3 +1,5 @@
+// event_model.dart
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'event_model.freezed.dart';
@@ -17,7 +19,7 @@ class Event with _$Event {
     required String venue,
     String? eventCoverImageFullUrl,
     String? eventCoverImageCroppedUrl,
-    required String status,
+    required String status, // pre-draft, draft, live, cancelled, past
     required DateTime createdAt,
     DateTime? updatedAt,
     DateTime? saleStartDate,

@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:organizer_app/create_event/ticketing/bloc/ticket_details_bloc.dart';
-import 'package:organizer_app/create_event/ticketing/bloc/ticket_details_event.dart';
-import 'package:organizer_app/create_event/ticketing/bloc/ticket_details_state.dart';
-import 'package:organizer_app/create_event/ticketing/ticket_dialog_cubit.dart';
+import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_bloc.dart';
+import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_event.dart';
+import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_state.dart';
+import 'package:organizer_app/event_creation/ticket_details/ticket_dialog_cubit.dart';
 import 'package:shared/models/ticket_model.dart';
 import 'package:shared/widgets/custom_label_input_box.dart';
 

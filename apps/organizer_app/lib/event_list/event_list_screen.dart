@@ -5,7 +5,6 @@ import 'package:organizer_app/choose_brand/choose_brand_dropdown.dart';
 import 'package:organizer_app/choose_brand/choose_brand_dropdown_bloc.dart';
 import 'package:organizer_app/event_list/event_filter_bloc.dart';
 import 'package:organizer_app/event_list/organizer_event_list.dart';
-import 'package:organizer_app/event_list/organizer_event_list_item.dart';
 import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/authentication/auth/auth_service.dart';
@@ -23,7 +22,9 @@ class EventListScreenState extends State<EventListScreen> {
   String? selectedStatus;
 
   void _onBrandSelected(List<String> brandIds) {
-    selectedBrandIds = brandIds;
+    setState(() {
+      selectedBrandIds = brandIds;
+    });
     _applyCombinedFilter();
   }
 
@@ -38,7 +39,6 @@ class EventListScreenState extends State<EventListScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final authService = context.read<AuthService>();
@@ -50,123 +50,112 @@ class EventListScreenState extends State<EventListScreen> {
         brandRepository: brandRepository,
         authService: authService,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Dropdown with padding
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ChooseBrandDropdown(
-                onBrandSelected: _onBrandSelected,
-              ),
-            ),
-            
-            const SizedBox(height: 10),
-            const Divider(height: 1, color: Colors.grey),
-            
-            // Button section with padding
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: CustomPaddingButton(
-                onPressed: () {
-                  if (selectedBrandIds == null || selectedBrandIds!.isEmpty) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Error'),
-                        content: const Text('Please select a brand before creating an event.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    context.push(
-                      '/create_event/${selectedBrandIds!.first}',
-                      extra: {
-                        'eventRepository': eventRepository,
-                        'authService': authService,
-                      },
-                    );
-                  }
-                },
-                label: 'Create New Event',
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(3.0),
+      child: Material( // Ensure Material widget wraps the screen
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Brand Dropdown
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: ChooseBrandDropdown(
+                    onBrandSelected: _onBrandSelected,
                   ),
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.grey,
-                  minimumSize: const Size(double.infinity, 40),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-              ),
+                const Divider(height: 1, color: Colors.grey),
+
+                // Create Event Button
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: CustomPaddingButton(
+                    onPressed: () {
+                      if (selectedBrandIds == null || selectedBrandIds!.isEmpty) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Error'),
+                            content: const Text('Please select a brand before creating an event.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        context.push(
+                          '/create_event/${selectedBrandIds!.first}', // Navigate to create_event route
+                          extra: {
+                            'eventRepository': eventRepository,
+                            'authService': authService,
+                          },
+                        );
+                      }
+                    },
+                    label: 'Create New Event',
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.grey,
+                      minimumSize: const Size(double.infinity, 40),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const Divider(height: 1, color: Colors.grey),
+
+                // Filters
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildFilterButton(context, label: 'Drafts', status: 'draft'),
+                      const SizedBox(width: 8),
+                      _buildFilterButton(context, label: 'Current', status: 'live'),
+                      const SizedBox(width: 8),
+                      _buildFilterButton(context, label: 'Past', status: 'past'),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: Colors.grey),
+
+                // Event List
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: BlocBuilder<EventFilterBloc, EventFilterState>(
+                    builder: (context, state) {
+                      if (state is EventFilterLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is EventFilterLoaded) {
+                        return OrganizerEventList(events: state.filteredEvents);
+                      } else if (state is EventFilterError) {
+                        return Center(child: Text(state.errorMessage));
+                      }
+                      return const Center(child: Text('No events available.'));
+                    },
+                  ),
+                ),
+              ],
             ),
-            
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 10),
-            
-            // Filter buttons with padding
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildFilterButton(context, label: 'Drafts', status: 'draft'),
-                  const SizedBox(width: 8),
-                  _buildFilterButton(context, label: 'Current', status: 'live'),
-                  const SizedBox(width: 8),
-                  _buildFilterButton(context, label: 'Past', status: 'past'),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 10),
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 10),
-            
-            // Event list with padding
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: BlocBuilder<EventFilterBloc, EventFilterState>(
-                builder: (context, state) {
-                  if (state is EventFilterLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is EventFilterLoaded) {
-                    return OrganizerEventList(events: state.filteredEvents);
-                  } else if (state is EventFilterError) {
-                    return Center(child: Text(state.errorMessage));
-                  }
-                  return const Center(child: Text('No events available.'));
-                },
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-
-
   Widget _buildFilterButton(BuildContext context, {required String label, required String status}) {
     return Expanded(
       child: CustomPaddingButton(
         onPressed: () {
-          selectedStatus = status;
+          setState(() {
+            selectedStatus = status;
+          });
           _applyCombinedFilter();
         },
         label: label,
         style: ElevatedButton.styleFrom(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(3.0),
-          ),
           foregroundColor: Colors.white,
           backgroundColor: Colors.grey,
           minimumSize: const Size(0, 30),

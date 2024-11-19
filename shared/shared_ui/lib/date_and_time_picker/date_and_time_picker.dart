@@ -1,7 +1,7 @@
 // date_and_time_picker.dart
 import 'package:flutter/material.dart';
-import 'package:shared/widgets/date_picker.dart';
-import 'package:shared/widgets/dropdown_time_picker.dart';
+import 'package:shared/date_and_time_picker/date_picker.dart';
+import 'package:shared/date_and_time_picker/dropdown_time_picker.dart';
 
 class CreateEventDatePicker extends StatelessWidget {
   final String label;
