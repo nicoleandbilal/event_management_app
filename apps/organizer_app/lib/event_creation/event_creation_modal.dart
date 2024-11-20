@@ -11,15 +11,17 @@ import 'package:shared/models/event_model.dart';
 import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/ticket_repository.dart';
 
+import '../event_list/event_list_screen.dart';
+
 class EventCreationScreen extends StatelessWidget {
   final String userId;
   final String brandId;
 
   const EventCreationScreen({
-    Key? key,
+    super.key,
     required this.userId,
     required this.brandId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,66 +37,119 @@ class EventCreationScreen extends StatelessWidget {
           // Blurred Background
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
+            child: const EventListScreen(),
           ),
 
-          // Event Creation Modal
-          const EventCreationModal(),
+
+          // Draggable Modal
+          const Positioned.fill(
+            child: EventCreationModal(),
+          ),
         ],
       ),
     );
   }
 }
 
-class EventCreationModal extends StatelessWidget {
-  const EventCreationModal({Key? key}) : super(key: key);
+class EventCreationModal extends StatefulWidget {
+  const EventCreationModal({super.key});
+
+  @override
+  EventCreationModalState createState() => EventCreationModalState();
+}
+
+class EventCreationModalState extends State<EventCreationModal>
+    with SingleTickerProviderStateMixin {
+  double _dragOffset = 0.0;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animation = Tween<double>(begin: 0.0, end: 0.0).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _dragOffset += details.delta.dy; // Adjust vertical offset
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    if (_dragOffset > 0.1 * screenHeight) {
+      Navigator.pop(context); // Dismiss modal if dragged down by 10% of the screen
+    } else {
+      // Snap back if threshold not reached
+      _animationController.reset();
+      _animation = Tween<double>(begin: _dragOffset, end: 0.0).animate(_animationController)
+        ..addListener(() {
+          setState(() {
+            _dragOffset = _animation.value;
+          });
+        });
+      _animationController.forward();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: BlocConsumer<EventCreationBloc, EventCreationState>(
-        listener: (context, state) {
-          if (state is EventCreationError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is EventCreationLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is EventCreationLoaded) {
-            return DraggableScrollableSheet(
-              initialChildSize: 0.8,
-              minChildSize: 0.5,
-              maxChildSize: 0.95,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildTopBar(context),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: scrollController,
-                          child: _buildContent(context, state),
+    return Transform.translate(
+      offset: Offset(0, _dragOffset),
+      child: FractionallySizedBox(
+        heightFactor: 0.8, // 80% of the screen height
+        alignment: Alignment.bottomCenter,
+        child: GestureDetector(
+          onVerticalDragUpdate: _onDragUpdate,
+          onVerticalDragEnd: _onDragEnd,
+          child: Material(
+            color: Colors.transparent, // Transparent modal background
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: BlocConsumer<EventCreationBloc, EventCreationState>(
+                listener: (context, state) {
+                  if (state is EventCreationError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.message)),
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  if (state is EventCreationLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is EventCreationLoaded) {
+                    return Column(
+                      children: [
+                        _buildTopBar(context),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: _buildContent(context, state),
+                          ),
                         ),
-                      ),
-                      _buildBottomNavigation(context, state),
-                    ],
-                  ),
-                );
-              },
-            );
-          }
-          return const Center(child: Text("Initializing..."));
-        },
+                        _buildBottomNavigation(context, state),
+                      ],
+                    );
+                  }
+                  return const Center(child: Text("Initializing..."));
+                },
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -110,10 +165,10 @@ class EventCreationModal extends StatelessWidget {
               final currentState =
                   context.read<EventCreationBloc>().state as EventCreationLoaded;
               context.read<EventCreationBloc>().add(SaveAndExit(
-                    currentState.eventId,
-                    {}, // Provide updated form data
-                  ));
-              Navigator.pop(context);
+                currentState.eventId,
+                {}, // Provide updated form data
+              ));
+              Navigator.pop(context); // Dismiss the modal
             },
             child: const Text("Save & Exit"),
           ),
@@ -198,6 +253,7 @@ class EventCreationModal extends StatelessWidget {
                   createdAt: DateTime.now(),
                 );
                 context.read<EventCreationBloc>().add(PublishEvent(event));
+                Navigator.pop(context); // Ensure modal dismisses after finishing
               } else {
                 context.read<EventCreationBloc>().add(NextStep());
               }
