@@ -50,7 +50,7 @@ class EventListScreenState extends State<EventListScreen> {
         brandRepository: brandRepository,
         authService: authService,
       ),
-      child: Material( // Ensure Material widget wraps the screen
+      child: Material(
         child: SafeArea(
           child: SingleChildScrollView(
             child: Column(
@@ -86,7 +86,7 @@ class EventListScreenState extends State<EventListScreen> {
                         );
                       } else {
                         context.push(
-                          '/create_event/${selectedBrandIds!.first}', // Navigate to create_event route
+                          '/create_event/${selectedBrandIds!.first}',
                           extra: {
                             'eventRepository': eventRepository,
                             'authService': authService,
@@ -107,7 +107,7 @@ class EventListScreenState extends State<EventListScreen> {
 
                 // Filters
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -123,7 +123,7 @@ class EventListScreenState extends State<EventListScreen> {
 
                 // Event List
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: BlocBuilder<EventFilterBloc, EventFilterState>(
                     builder: (context, state) {
                       if (state is EventFilterLoading) {

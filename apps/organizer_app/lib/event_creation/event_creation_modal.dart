@@ -32,37 +32,20 @@ class EventCreationScreen extends StatelessWidget {
         basicDetailsBloc: context.read<BasicDetailsBloc>(),
         ticketDetailsBloc: context.read<TicketDetailsBloc>(),
       )..add(InitializeEventCreation(userId)),
-      child: Stack(
-        children: [
-          // Blurred Background
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-            child: const EventListScreen(),
-          ),
-
-
-          // Draggable Modal
-          const Positioned.fill(
-            child: EventCreationModal(),
-          ),
-        ],
-      ),
+      child: _EventCreationView(),
     );
   }
 }
 
-class EventCreationModal extends StatefulWidget {
-  const EventCreationModal({super.key});
-
+class _EventCreationView extends StatefulWidget {
   @override
-  EventCreationModalState createState() => EventCreationModalState();
+  __EventCreationViewState createState() => __EventCreationViewState();
 }
 
-class EventCreationModalState extends State<EventCreationModal>
+class __EventCreationViewState extends State<_EventCreationView>
     with SingleTickerProviderStateMixin {
-  double _dragOffset = 0.0;
   late AnimationController _animationController;
-  late Animation<double> _animation;
+  late Animation<double> _opacityAnimation;
 
   @override
   void initState() {
@@ -71,7 +54,17 @@ class EventCreationModalState extends State<EventCreationModal>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _animation = Tween<double>(begin: 0.0, end: 0.0).animate(_animationController);
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  void showModal() {
+    _animationController.forward();
+  }
+
+  void hideModal() {
+    _animationController.reverse();
   }
 
   @override
@@ -80,79 +73,162 @@ class EventCreationModalState extends State<EventCreationModal>
     super.dispose();
   }
 
-  void _onDragUpdate(DragUpdateDetails details) {
-    setState(() {
-      _dragOffset += details.delta.dy; // Adjust vertical offset
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Background Screen
+        const EventListScreen(),
+
+        // Animated Opacity Layer
+        AnimatedBuilder(
+          animation: _opacityAnimation,
+          builder: (context, child) {
+            return Container(
+              color: Colors.black.withOpacity(_opacityAnimation.value),
+            );
+          },
+        ),
+
+        // Draggable Modal
+        EventCreationModal(
+          onShowModal: showModal,
+          onHideModal: hideModal,
+        ),
+      ],
+    );
+  }
+}
+
+class EventCreationModal extends StatefulWidget {
+  final VoidCallback onShowModal;
+  final VoidCallback onHideModal;
+
+  const EventCreationModal({
+    super.key,
+    required this.onShowModal,
+    required this.onHideModal,
+  });
+
+  @override
+  EventCreationModalState createState() => EventCreationModalState();
+}
+
+class EventCreationModalState extends State<EventCreationModal>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _offsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _offsetAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onShowModal();
+      _animationController.forward();
     });
   }
 
-  void _onDragEnd(DragEndDetails details) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    if (_dragOffset > 0.1 * screenHeight) {
-      Navigator.pop(context); // Dismiss modal if dragged down by 10% of the screen
-    } else {
-      // Snap back if threshold not reached
-      _animationController.reset();
-      _animation = Tween<double>(begin: _dragOffset, end: 0.0).animate(_animationController)
-        ..addListener(() {
-          setState(() {
-            _dragOffset = _animation.value;
-          });
-        });
-      _animationController.forward();
-    }
+  void _onDragUpdate(DragUpdateDetails details) {
+    final dragDelta = details.primaryDelta ?? 0.0;
+    _animationController.value -= dragDelta / MediaQuery.of(context).size.height;
+  }
+
+void _onDragEnd(DragEndDetails details) {
+  if (_animationController.value < 0.5) {
+    widget.onHideModal();
+    _animationController.reverse().then((_) {
+      // Navigate back or clean up state after modal is fully dismissed
+      Navigator.of(context).pop();
+    });
+  } else {
+    _animationController.forward();
+  }
+}
+
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(0, _dragOffset),
-      child: FractionallySizedBox(
-        heightFactor: 0.8, // 80% of the screen height
-        alignment: Alignment.bottomCenter,
-        child: GestureDetector(
-          onVerticalDragUpdate: _onDragUpdate,
-          onVerticalDragEnd: _onDragEnd,
-          child: Material(
-            color: Colors.transparent, // Transparent modal background
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: BlocConsumer<EventCreationBloc, EventCreationState>(
-                listener: (context, state) {
-                  if (state is EventCreationError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(state.message)),
-                    );
-                  }
-                },
-                builder: (context, state) {
-                  if (state is EventCreationLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is EventCreationLoaded) {
-                    return Column(
-                      children: [
-                        _buildTopBar(context),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: _buildContent(context, state),
-                          ),
+    return AnimatedBuilder(
+      animation: _offsetAnimation,
+      builder: (context, child) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: FractionalTranslation(
+            translation: Offset(0.0, _offsetAnimation.value),
+            child: GestureDetector(
+              onVerticalDragUpdate: _onDragUpdate,
+              onVerticalDragEnd: _onDragEnd,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.8,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(
+                        width: 40,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(3),
                         ),
-                        _buildBottomNavigation(context, state),
-                      ],
-                    );
-                  }
-                  return const Center(child: Text("Initializing..."));
-                },
+                      ),
+                      Expanded(
+                        child: BlocConsumer<EventCreationBloc, EventCreationState>(
+                          listener: (context, state) {
+                            if (state is EventCreationError) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(state.message)),
+                              );
+                            }
+                          },
+                          builder: (context, state) {
+                            if (state is EventCreationLoading) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (state is EventCreationLoaded) {
+                              return Column(
+                                children: [
+                                  _buildTopBar(context),
+                                  Expanded(
+                                    child: _buildContent(context, state),
+                                  ),
+                                  _buildBottomNavigation(context, state),
+                                ],
+                              );
+                            }
+                            return const Center(child: Text("Initializing..."));
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+}
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
@@ -208,15 +284,6 @@ class EventCreationModalState extends State<EventCreationModal>
             context.read<EventCreationBloc>().add(NextStep(formData: formData));
           },
         );
-      case 2:
-        return Center(
-          child: Column(
-            children: const [
-              Text("Additional Steps Here"),
-              Text("e.g., Ticket Details"),
-            ],
-          ),
-        );
       default:
         return Center(child: Text("Step ${state.currentStep}"));
     }
@@ -240,20 +307,20 @@ class EventCreationModalState extends State<EventCreationModal>
           ElevatedButton(
             onPressed: () {
               if (isLastStep) {
-                final event = Event(
-                  eventId: '',
-                  createdByUserId: '',
-                  eventName: "Sample Event",
-                  description: "Sample Description",
-                  category: "Sample Category",
-                  startDateTime: DateTime.now(),
-                  endDateTime: DateTime.now().add(const Duration(hours: 2)),
-                  venue: "Sample Venue",
-                  status: "draft",
-                  createdAt: DateTime.now(),
-                );
-                context.read<EventCreationBloc>().add(PublishEvent(event));
-                Navigator.pop(context); // Ensure modal dismisses after finishing
+                context.read<EventCreationBloc>().add(PublishEvent(
+                  Event(
+                    eventId: '',
+                    createdByUserId: '',
+                    eventName: "Sample Event",
+                    description: "Sample Description",
+                    category: "Sample Category",
+                    startDateTime: DateTime.now(),
+                    endDateTime: DateTime.now().add(const Duration(hours: 2)),
+                    venue: "Sample Venue",
+                    status: "draft",
+                    createdAt: DateTime.now(),
+                  ),
+                ));
               } else {
                 context.read<EventCreationBloc>().add(NextStep());
               }
@@ -264,4 +331,3 @@ class EventCreationModalState extends State<EventCreationModal>
       ),
     );
   }
-}

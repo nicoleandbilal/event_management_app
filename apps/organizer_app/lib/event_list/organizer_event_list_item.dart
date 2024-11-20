@@ -33,7 +33,7 @@ class OrganizerEventListItem extends StatelessWidget {
       child: Card(
         color: Colors.white,
         elevation: 0,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
         child: SizedBox(
           height: 120,
           child: Row(
