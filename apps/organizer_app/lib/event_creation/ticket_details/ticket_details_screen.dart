@@ -5,10 +5,10 @@ import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_
 import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_event.dart';
 import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_state.dart';
 
-class TicketScreen extends StatelessWidget {
+class TicketDetailsScreen extends StatelessWidget {
   final String eventId;
 
-  const TicketScreen({Key? key, required this.eventId}) : super(key: key);
+  const TicketDetailsScreen({super.key, required this.eventId});
 
   @override
   Widget build(BuildContext context) {

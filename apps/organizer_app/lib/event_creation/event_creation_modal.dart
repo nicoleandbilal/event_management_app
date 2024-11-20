@@ -7,6 +7,7 @@ import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_
 import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_event.dart';
 import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_state.dart';
 import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_bloc.dart';
+import 'package:organizer_app/event_creation/ticket_details/ticket_details_screen.dart';
 import 'package:shared/models/event_model.dart';
 import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/ticket_repository.dart';
@@ -284,6 +285,12 @@ void _onDragEnd(DragEndDetails details) {
             context.read<EventCreationBloc>().add(NextStep(formData: formData));
           },
         );
+      case 2: 
+        return TicketDetailsScreen(
+          eventId: state.eventId,
+        );
+
+
       default:
         return Center(child: Text("Step ${state.currentStep}"));
     }
