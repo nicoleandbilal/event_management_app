@@ -13,15 +13,15 @@ class CreateEventImageUpload extends StatefulWidget {
   final String eventId;
 
   const CreateEventImageUpload({
-    Key? key,
+    super.key,
     required this.eventId,
-  }) : super(key: key);
+  });
 
   @override
-  _CreateEventImageUploadState createState() => _CreateEventImageUploadState();
+  CreateEventImageUploadState createState() => CreateEventImageUploadState();
 }
 
-class _CreateEventImageUploadState extends State<CreateEventImageUpload> {
+class CreateEventImageUploadState extends State<CreateEventImageUpload> {
   final ImagePicker _picker = ImagePicker();
   File? _fullImageFile;
   File? _croppedImageFile;
@@ -96,6 +96,12 @@ class _CreateEventImageUploadState extends State<CreateEventImageUpload> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.eventId.isEmpty) {
+      return const Center(
+        child: Text('Unable to upload images. Event ID is missing.'),
+      );
+    }
+
     return BlocBuilder<BasicDetailsBloc, BasicDetailsState>(
       builder: (context, state) {
         if (_isUploading || state is EventImageUploading) {

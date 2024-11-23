@@ -1,6 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 import 'package:organizer_app/event_creation/basic_details/basic_details_screen.dart';
 import 'package:organizer_app/event_creation/basic_details/bloc/basic_details_bloc.dart';
 import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_bloc.dart';
@@ -11,7 +11,6 @@ import 'package:organizer_app/event_creation/ticket_details/ticket_details_scree
 import 'package:shared/models/event_model.dart';
 import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/ticket_repository.dart';
-
 import '../event_list/event_list_screen.dart';
 
 class EventCreationScreen extends StatelessWidget {
@@ -32,6 +31,7 @@ class EventCreationScreen extends StatelessWidget {
         ticketRepository: context.read<TicketRepository>(),
         basicDetailsBloc: context.read<BasicDetailsBloc>(),
         ticketDetailsBloc: context.read<TicketDetailsBloc>(),
+        logger: Logger(),
       )..add(InitializeEventCreation(userId)),
       child: _EventCreationView(),
     );
@@ -243,7 +243,7 @@ void _onDragEnd(DragEndDetails details) {
                   context.read<EventCreationBloc>().state as EventCreationLoaded;
               context.read<EventCreationBloc>().add(SaveAndExit(
                 currentState.eventId,
-                {}, // Provide updated form data
+                const {}, // Provide updated form data
               ));
               Navigator.pop(context); // Dismiss the modal
             },
@@ -318,12 +318,12 @@ void _onDragEnd(DragEndDetails details) {
                   Event(
                     eventId: '',
                     createdByUserId: '',
-                    eventName: "Sample Event",
-                    description: "Sample Description",
-                    category: "Sample Category",
+                    eventName: '',
+                    description: '',
+                    category: '',
                     startDateTime: DateTime.now(),
                     endDateTime: DateTime.now().add(const Duration(hours: 2)),
-                    venue: "Sample Venue",
+                    venue: '',
                     status: "draft",
                     createdAt: DateTime.now(),
                   ),

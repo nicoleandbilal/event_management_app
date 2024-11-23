@@ -85,6 +85,7 @@ List<RouteBase> eventRoutes = [
                   ticketRepository: ticketRepository,
                   basicDetailsBloc: context.read<BasicDetailsBloc>(),
                   ticketDetailsBloc: context.read<TicketDetailsBloc>(),
+                  logger: Logger(),
                 )..add(InitializeEventCreation(userId)),
               ),
             ],

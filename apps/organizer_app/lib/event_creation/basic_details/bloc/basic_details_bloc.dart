@@ -30,10 +30,11 @@ class BasicDetailsBloc extends Bloc<BasicDetailsEvent, BasicDetailsState> {
     on<DeleteEventImage>(_onDeleteEventImage);
   }
 
-  // Handles dynamic updates for any field
+  // Handles updates 
   void _onUpdateField(UpdateField event, Emitter<BasicDetailsState> emit) {
     formData[event.field] = event.value;
-    _logger.d('Updated ${event.field} with value: ${event.value}');
+    _logger.d('Field "${event.field}" updated with value: ${event.value}');
+    // Do not emit any state. Only update internal state (formData).
   }
 
   // Validate and submit form data
@@ -45,7 +46,14 @@ class BasicDetailsBloc extends Bloc<BasicDetailsEvent, BasicDetailsState> {
       return;
     }
 
-    emit(BasicDetailsValid(formData));
+    try {
+      emit(BasicDetailsLoading());
+      await eventRepository.updateDraftEvent(eventId, formData);
+      emit(BasicDetailsValid(formData));
+    } catch (error) {
+      _logger.e('Error saving basic details: $error');
+      emit(BasicDetailsError("Failed to save details: $error"));
+    }
   }
 
   // Image upload event handler
@@ -82,7 +90,12 @@ class BasicDetailsBloc extends Bloc<BasicDetailsEvent, BasicDetailsState> {
 
   // Validate required fields
   List<String> _validateFields() {
-    final requiredFields = ['eventName', 'description', 'category', 'startDateTime', 'endDateTime'];
+    final requiredFields = [
+      'eventName', 
+      'description', 
+      'category', 
+      'startDateTime', 
+      'endDateTime'];
     final missingFields = <String>[];
 
     for (var field in requiredFields) {

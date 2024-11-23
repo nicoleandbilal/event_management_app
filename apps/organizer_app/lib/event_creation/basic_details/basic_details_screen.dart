@@ -10,13 +10,13 @@ import 'package:shared/date_and_time_picker/date_and_time_picker.dart';
 
 class BasicDetailsScreen extends StatefulWidget {
   final String eventId;
+  
   // final String brandId; // Include brandId
   final Function(Map<String, dynamic>) onUpdateFormData;
 
   const BasicDetailsScreen({
     super.key,
     required this.eventId,
-    // required this.brandId, // Ensure this parameter is required
     required this.onUpdateFormData,
   });
 
@@ -41,25 +41,22 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
 
   void _submitForm(BasicDetailsBloc bloc) {
     if (_formKey.currentState?.validate() == true) {
-      widget.onUpdateFormData(bloc.formData);
       bloc.add(SubmitBasicDetails());
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all required fields.")),
+      );
     }
-  }
-
-  void _updateField(BasicDetailsBloc bloc, String field, dynamic value) {
-    bloc.add(UpdateField(field: field, value: value));
-    widget.onUpdateFormData({field: value});
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: BlocProvider(
-        create: (_) => BasicDetailsBloc(
-          eventRepository: context.read(),
-          imageUploadService: context.read(),
-          eventId: widget.eventId,
-        ),
+    return BlocProvider(
+      create: (_) => BasicDetailsBloc(
+        eventRepository: context.read(),
+        imageUploadService: context.read(),
+        eventId: widget.eventId,
+      ),
         child: BlocConsumer<BasicDetailsBloc, BasicDetailsState>(
           listener: (context, state) {
             if (state is BasicDetailsError) {
@@ -93,11 +90,13 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     const SizedBox(height: 16.0),
+
                     _buildTextInput(
                       label: "Event Name",
                       controller: _eventNameController,
-                      onChanged: (value) => _updateField(bloc, "eventName", value),
+                      onChanged: (value) => bloc.add(UpdateField(field: "eventName", value: value)),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Event name is required.";
@@ -107,13 +106,13 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
                     ),
                     const SizedBox(height: 16.0),
                     CreateEventImageUpload(eventId: widget.eventId),
+
                     const SizedBox(height: 16.0),
                     _buildTextInput(
                       label: "Event Description",
                       controller: _descriptionController,
                       maxLines: 4,
-                      onChanged: (value) =>
-                          _updateField(bloc, "description", value),
+                      onChanged: (value) => bloc.add(UpdateField(field: "description", value: value)),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Event description is required.";
@@ -121,12 +120,14 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
                         return null;
                       },
                     ),
+
                     const SizedBox(height: 16.0),
                     _buildDateAndTimePicker(
                       bloc: bloc,
                       label: "Start Date & Time",
                       isStart: true,
                     ),
+
                     const SizedBox(height: 16.0),
                     _buildDateAndTimePicker(
                       bloc: bloc,
@@ -135,11 +136,12 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
                     ),
                     const SizedBox(height: 16.0),
                     _buildCategoryDropdown(bloc),
+
                     const SizedBox(height: 16.0),
                     _buildTextInput(
                       label: "Venue",
                       controller: _venueController,
-                      onChanged: (value) => _updateField(bloc, "venue", value),
+                      onChanged: (value) => bloc.add(UpdateField(field: "venue", value: value)),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Venue is required.";
@@ -160,7 +162,6 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
             );
           },
         ),
-      ),
     );
   }
 
@@ -214,10 +215,10 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
           time: isStart
               ? bloc.formData["startTime"]
               : bloc.formData["endTime"],
-          onDatePicked: (pickedDate) => _updateField(
-              bloc, isStart ? "startDateTime" : "endDateTime", pickedDate),
-          onTimePicked: (pickedTime) => _updateField(
-              bloc, isStart ? "startTime" : "endTime", pickedTime),
+          onDatePicked: (pickedDate) => bloc.add(UpdateField(
+              field: isStart ? "startDateTime" : "endDateTime", value: pickedDate)),
+          onTimePicked: (pickedTime) => bloc.add(UpdateField(
+              field: isStart ? "startTime" : "endTime", value: pickedTime)),
         ),
       ],
     );
@@ -243,7 +244,7 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
           onChanged: (newValue) {
             setState(() {
               _selectedCategory = newValue;
-              _updateField(bloc, "category", newValue);
+              bloc.add(UpdateField(field: "category", value: newValue));
             });
           },
           decoration: const InputDecoration(

@@ -105,6 +105,7 @@ class EventManagementApp extends StatelessWidget {
               ticketRepository: context.read<TicketRepository>(),
               basicDetailsBloc: context.read<BasicDetailsBloc>(),
               ticketDetailsBloc: context.read<TicketDetailsBloc>(),
+              logger: Logger(),
             ),
           ),
         ],
