@@ -1,5 +1,3 @@
-// basic_details_state.dart
-
 import 'package:equatable/equatable.dart';
 
 abstract class BasicDetailsState extends Equatable {
@@ -9,13 +7,13 @@ abstract class BasicDetailsState extends Equatable {
   List<Object?> get props => [];
 }
 
-// Initial state for Basic Details form
+// Initial state of the basic details form
 class BasicDetailsInitial extends BasicDetailsState {}
 
-// State for loading processes (e.g., image upload, form submission)
+// State indicating a loading process
 class BasicDetailsLoading extends BasicDetailsState {}
 
-// State when form data is successfully validated and ready to submit
+// State when form data is validated and ready for submission
 class BasicDetailsValid extends BasicDetailsState {
   final Map<String, dynamic> formData;
 
@@ -25,7 +23,10 @@ class BasicDetailsValid extends BasicDetailsState {
   List<Object?> get props => [formData];
 }
 
-// Error state for validation or processing failures
+// State when basic details are successfully saved and exited
+class BasicDetailsSaved extends BasicDetailsState {}
+
+// State for errors in validation or processing
 class BasicDetailsError extends BasicDetailsState {
   final String message;
 
@@ -35,7 +36,7 @@ class BasicDetailsError extends BasicDetailsState {
   List<Object?> get props => [message];
 }
 
-// State for missing fields or invalid input
+// State for tracking missing fields in the form
 class BasicDetailsValidationFailed extends BasicDetailsState {
   final List<String> missingFields;
 
@@ -45,7 +46,7 @@ class BasicDetailsValidationFailed extends BasicDetailsState {
   List<Object?> get props => [missingFields];
 }
 
-// State for tracking image upload in progress
+// State indicating image upload is in progress
 class EventImageUploading extends BasicDetailsState {}
 
 // State for successful image upload
@@ -59,7 +60,7 @@ class EventImageUploadSuccess extends BasicDetailsState {
   List<Object?> get props => [fullImageUrl, croppedImageUrl];
 }
 
-// State for image deletion in progress
+// State indicating image deletion is in progress
 class EventImageDeleting extends BasicDetailsState {}
 
 // State for successful image deletion

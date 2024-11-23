@@ -21,8 +21,16 @@ class UpdateField extends BasicDetailsEvent {
   List<Object?> get props => [field, value];
 }
 
-// Event to submit and validate the basic details form
-class SubmitBasicDetails extends BasicDetailsEvent {}
+// Event to submit and validate the form
+class SubmitBasicDetails extends BasicDetailsEvent {
+  final bool saveAndExit;
+
+  const SubmitBasicDetails({required this.saveAndExit});
+
+  @override
+  List<Object?> get props => [saveAndExit];
+}
+
 
 // Event to upload an image (both full and cropped versions)
 class UploadEventImage extends BasicDetailsEvent {
