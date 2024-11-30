@@ -3,13 +3,20 @@ import 'package:logger/logger.dart';
 import '../models/event_model.dart';
 import 'package:shared/models/event_mapper.dart';
 
+class EventRepositoryException implements Exception {
+  final String message;
+  EventRepositoryException(this.message);
+
+  @override
+  String toString() => "EventRepositoryException: $message";
+}
+
 class EventRepository {
   final FirebaseFirestore firestore;
-  final Logger _logger = Logger(); // Logger instance for tracking actions and errors
+  final Logger _logger;
 
-  EventRepository({required this.firestore});
+  EventRepository({required this.firestore}) : _logger = Logger();
 
-  // Initialize a new event with "pre-draft" status; returns the generated event ID
   Future<String> initializeEventDraft(String userId) async {
     try {
       final newEventData = {
@@ -19,18 +26,15 @@ class EventRepository {
         'updatedAt': null,
       };
 
-      final docRef = await firestore
-        .collection('events')
-        .add(newEventData);
+      final docRef = await firestore.collection('events').add(newEventData);
       _logger.i('Event draft initialized with pre-draft status. Event ID: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      _logger.e('Failed to initialize event draft: $e');
-      throw Exception('Failed to initialize event draft: $e');
+      _logger.e('Failed to initialize event draft');
+      throw EventRepositoryException('Failed to initialize event draft: $e');
     }
   }
 
-  // Update an existing event draft with new data, setting status to "draft"
   Future<void> updateDraftEvent(String eventId, Map<String, dynamic> updatedData) async {
     try {
       final draftData = {
@@ -39,18 +43,14 @@ class EventRepository {
         'updatedAt': Timestamp.now(),
       };
 
-      await firestore
-        .collection('events')
-        .doc(eventId)
-        .update(draftData);
+      await firestore.collection('events').doc(eventId).update(draftData);
       _logger.i('Draft event updated with ID: $eventId');
     } catch (e) {
-      _logger.e('Failed to update draft event $eventId: $e');
-      throw Exception('Failed to update draft event: $e');
+      _logger.e('Failed to update draft event $eventId');
+      throw EventRepositoryException('Failed to update draft event: $e');
     }
   }
 
-  // Publish an event, marking its status as "live" in Firestore
   Future<void> publishEvent(Event event) async {
     try {
       final eventData = {
@@ -59,66 +59,49 @@ class EventRepository {
         'updatedAt': Timestamp.now(),
       };
 
-      await firestore
-        .collection('events')
-        .doc(event.eventId)
-        .update(eventData);
+      await firestore.collection('events').doc(event.eventId).update(eventData);
       _logger.i('Event published successfully with ID: ${event.eventId}');
     } catch (e) {
-      _logger.e('Failed to publish event ${event.eventId}: $e');
-      throw Exception('Failed to publish event: $e');
+      _logger.e('Failed to publish event ${event.eventId}');
+      throw EventRepositoryException('Failed to publish event: $e');
     }
   }
 
-  // Cancel an event by updating its status to "cancelled"
   Future<void> cancelEvent(String eventId) async {
     try {
-      await firestore
-        .collection('events')
-        .doc(eventId)
-        .update({
+      await firestore.collection('events').doc(eventId).update({
         'status': 'cancelled',
         'updatedAt': Timestamp.now(),
-        });
+      });
       _logger.i('Event cancelled successfully with ID: $eventId');
     } catch (e) {
-      _logger.e('Failed to cancel event $eventId: $e');
-      throw Exception('Failed to cancel event: $e');
+      _logger.e('Failed to cancel event $eventId');
+      throw EventRepositoryException('Failed to cancel event: $e');
     }
   }
 
-  // Fetch event details by ID, converting Firestore data to an Event model
   Future<Event> getEventDetails(String eventId) async {
     try {
-      final doc = await firestore
-        .collection('events')
-        .doc(eventId)
-        .get();
+      final doc = await firestore.collection('events').doc(eventId).get();
       if (doc.exists) {
         _logger.i('Fetched event details for ID: $eventId');
         return TomaEventMapper.fromFirestore(doc);
       } else {
         _logger.w('Event not found with ID: $eventId');
-        throw Exception('Event not found');
+        throw EventRepositoryException('Event not found');
       }
     } catch (e) {
-      _logger.e('Error fetching event details for ID $eventId: $e');
-      throw Exception('Error fetching event details: $e');
+      _logger.e('Error fetching event details for ID $eventId');
+      throw EventRepositoryException('Error fetching event details: $e');
     }
   }
 
-  // Fetch events by brand ID
+   // Fetch events by brand ID
   Future<List<Event>> getEventsByBrand(String brandId) async {
     try {
       _logger.d('Fetching events for brand ID: $brandId');
-      final querySnapshot =
-          await firestore
-          .collection('events')
-          .where('brandId', isEqualTo: brandId)
-          .get();
-      final events = querySnapshot.docs
-        .map((doc) => TomaEventMapper.fromFirestore(doc))
-        .toList();
+      final querySnapshot = await firestore.collection('events').where('brandId', isEqualTo: brandId).get();
+      final events = querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
       _logger.i('Fetched ${events.length} events for brand ID: $brandId');
       return events;
     } catch (e) {
@@ -127,18 +110,14 @@ class EventRepository {
     }
   }
 
-  // Fetch events by status
+  // Fetch events by status (e.g., "draft", "live")
   Future<List<Event>> getEventsByStatus(String status) async {
     try {
-      final querySnapshot =
-          await firestore
-            .collection('events')
-            .where('status', isEqualTo: status)
-            .get();
-      _logger.i('Fetched ${querySnapshot.docs.length} events with status: $status');
-      return querySnapshot.docs
-        .map((doc) => TomaEventMapper.fromFirestore(doc))
-        .toList();
+      _logger.d('Fetching events with status: $status');
+      final querySnapshot = await firestore.collection('events').where('status', isEqualTo: status).get();
+      final events = querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
+      _logger.i('Fetched ${events.length} events with status: $status');
+      return events;
     } catch (e) {
       _logger.e('Error fetching events with status $status: $e');
       throw Exception('Error fetching events by status: $e');
@@ -160,26 +139,18 @@ class EventRepository {
 
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
-        for (var key in [
-          'startDateTime',
-          'endDateTime',
-          'createdAt',
-          'updatedAt',
-          'saleStartDate',
-          'saleEndDate'
-        ]) {
+        for (var key in ['startDateTime', 'endDateTime', 'createdAt', 'updatedAt', 'saleStartDate', 'saleEndDate']) {
           final value = data[key];
           if (value != null && value is! Timestamp) {
-            _logger.d('Field "$key" in document ${doc.id} has type: ${data[key]?.runtimeType}');
+          _logger.d('Field "$key" in document ${doc.id} has type: ${data[key]?.runtimeType}');
           }
         }
       }
 
-      final events = querySnapshot.docs
-      .map((doc) => TomaEventMapper.fromFirestore(doc))
-      .toList();
+      final events = querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
       _logger.i('Fetched ${events.length} events for brandId: $brandId with status: $status');
       return events;
+
     } catch (e, stackTrace) {
       _logger.e('Error fetching events by brand and status: $e', error: e, stackTrace: stackTrace);
       throw Exception('Error fetching events by brand and status: $e');
@@ -190,19 +161,14 @@ class EventRepository {
   Future<List<Event>> getEventsForAllUserBrands(List<String> brandIds, String? status) async {
     try {
       _logger.d('Fetching events for brand IDs: $brandIds with status: $status');
-      var query = firestore
-      .collection('events')
-      .where('brandId', whereIn: brandIds);
-
+      var query = firestore.collection('events').where('brandId', whereIn: brandIds);
+      
       if (status != null) {
-        query = query
-        .where('status', isEqualTo: status);
+        query = query.where('status', isEqualTo: status);
       }
 
       final querySnapshot = await query.get();
-      final events = querySnapshot.docs
-      .map((doc) => TomaEventMapper.fromFirestore(doc))
-      .toList();
+      final events = querySnapshot.docs.map((doc) => TomaEventMapper.fromFirestore(doc)).toList();
       _logger.i('Fetched ${events.length} events for brand IDs: $brandIds with status: $status');
       return events;
     } catch (e) {
@@ -211,24 +177,23 @@ class EventRepository {
     }
   }
 
-  // Utility to sanitize and validate data before updating Firestore
   Map<String, dynamic> _sanitizeData(Map<String, dynamic> data) {
     final sanitizedData = Map<String, dynamic>.from(data);
 
-    // Convert DateTime to Timestamp
     const dateFields = [
-      'startDateTime', 
-      'endDateTime', 
-      'saleStartDate', 
-      'saleEndDate', 
-      'createdAt', 
-      'updatedAt'];
+      'startDateTime',
+      'endDateTime',
+      'saleStartDate',
+      'saleEndDate',
+      'createdAt',
+      'updatedAt'
+    ];
+
     for (final field in dateFields) {
       if (sanitizedData[field] is DateTime) {
         sanitizedData[field] = Timestamp.fromDate(sanitizedData[field]);
       }
     }
-
     return sanitizedData;
   }
 }

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:organizer_app/home/home_screen.dart';
 import 'package:organizer_app/profile/organizer_profile_screen.dart';
 import 'package:organizer_app/event_list/event_list_screen.dart';
+import 'package:organizer_app/ticket_scanning/presentation/screens/scan_screen.dart';
+
 import 'package:shared/page_transitions.dart'; 
 
 List<GoRoute> navigationRoutes = [
@@ -17,7 +19,7 @@ List<GoRoute> navigationRoutes = [
   ),
   GoRoute(
     path: '/scanner',
-    pageBuilder: (context, state) => buildPageWithFadeTransition(const OrganizerProfileScreen(), state),
+    pageBuilder: (context, state) => buildPageWithFadeTransition(const ScanScreen(), state),
   ),
   GoRoute(
     path: '/orders',

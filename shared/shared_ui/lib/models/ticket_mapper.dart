@@ -1,12 +1,10 @@
-// ticket_mapper.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ticket_model.dart';
 
-class TomaTicketMapper {
-  // Converts Firestore document to a Ticket model instance
+class TicketMapper {
+  /// Converts a Firestore document to a Ticket model instance
   static Ticket fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>?; // Explicitly handle nullable data
+    final data = doc.data() as Map<String, dynamic>?; // Handle nullable data explicitly
     if (data == null) {
       throw StateError("Missing data for Ticket ID: ${doc.id}");
     }
@@ -16,23 +14,19 @@ class TomaTicketMapper {
       eventId: data['eventId'] as String,
       ticketType: data['ticketType'] as String,
       ticketName: data['ticketName'] as String,
-      ticketPrice: (data['ticketPrice'] as num).toDouble(), // Ensure type safety for double
-      availableQuantity: data['availableQuantity'] as int,
-      soldQuantity: data['soldQuantity'] as int,
+      ticketPrice: (data['ticketPrice'] as num).toDouble(),
+      availableQuantity: data['availableQuantity'] as int? ?? 0,
+      soldQuantity: data['soldQuantity'] as int? ?? 0,
       description: data['description'] as String?,
       stripePriceId: data['stripePriceId'] as String?,
       isRefundable: data['isRefundable'] as bool? ?? true,
-      ticketSaleStartDateTime: data['ticketSaleStartDateTime'] != null
-          ? (data['ticketSaleStartDateTime'] as Timestamp).toDate()
-          : null,
-      ticketSaleEndDateTime: data['ticketSaleEndDateTime'] != null
-          ? (data['ticketSaleEndDateTime'] as Timestamp).toDate()
-          : null,
+      ticketSaleStartDateTime: _timestampToDate(data['ticketSaleStartDateTime']),
+      ticketSaleEndDateTime: _timestampToDate(data['ticketSaleEndDateTime']),
       isSoldOut: data['isSoldOut'] as bool? ?? false,
     );
   }
 
-  // Converts a Ticket model instance to Firestore-compatible JSON map
+  /// Converts a Ticket model instance to a Firestore-compatible JSON map
   static Map<String, dynamic> toFirestore(Ticket ticket) {
     return {
       'eventId': ticket.eventId,
@@ -44,13 +38,19 @@ class TomaTicketMapper {
       'description': ticket.description,
       'stripePriceId': ticket.stripePriceId,
       'isRefundable': ticket.isRefundable,
-      'ticketSaleStartDateTime': ticket.ticketSaleStartDateTime != null
-          ? Timestamp.fromDate(ticket.ticketSaleStartDateTime!)
-          : null,
-      'ticketSaleEndDateTime': ticket.ticketSaleEndDateTime != null
-          ? Timestamp.fromDate(ticket.ticketSaleEndDateTime!)
-          : null,
+      'ticketSaleStartDateTime': _dateToTimestamp(ticket.ticketSaleStartDateTime),
+      'ticketSaleEndDateTime': _dateToTimestamp(ticket.ticketSaleEndDateTime),
       'isSoldOut': ticket.isSoldOut,
     };
+  }
+
+  /// Converts Firestore Timestamp to DateTime
+  static DateTime? _timestampToDate(dynamic timestamp) {
+    return timestamp != null && timestamp is Timestamp ? timestamp.toDate() : null;
+  }
+
+  /// Converts DateTime to Firestore Timestamp
+  static Timestamp? _dateToTimestamp(DateTime? date) {
+    return date != null ? Timestamp.fromDate(date) : null;
   }
 }

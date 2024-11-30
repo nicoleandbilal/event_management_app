@@ -8,23 +8,45 @@ import 'package:shared/date_and_time_picker/date_and_time_picker.dart';
 
 class BasicDetailsScreen extends StatefulWidget {
   final String eventId;
-  final Function(Map<String, dynamic>) onUpdateFormData;
 
   const BasicDetailsScreen({
     super.key,
     required this.eventId,
-    required this.onUpdateFormData,
   });
 
   @override
-  BasicDetailsScreenState createState() => BasicDetailsScreenState();
+  State<BasicDetailsScreen> createState() => _BasicDetailsScreenState();
 }
 
-class BasicDetailsScreenState extends State<BasicDetailsScreen> {
+class _BasicDetailsScreenState extends State<BasicDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _eventNameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _venueController = TextEditingController();
+  late TextEditingController _eventNameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _venueController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize form controllers
+    _eventNameController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _venueController = TextEditingController();
+
+    // Load initial data after Bloc state is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = context.read<BasicDetailsBloc>().state;
+      if (state is BasicDetailsValid) {
+        _loadInitialData(state.formData);
+      }
+    });
+  }
+
+  void _loadInitialData(Map<String, dynamic> formData) {
+    _eventNameController.text = formData['eventName'] ?? '';
+    _descriptionController.text = formData['description'] ?? '';
+    _venueController.text = formData['venue'] ?? '';
+  }
 
   @override
   void dispose() {
@@ -34,131 +56,96 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
     super.dispose();
   }
 
-  void _submitForm(BuildContext context, {bool saveAndExit = false}) {
-    if (_formKey.currentState?.validate() == true) {
-      final bloc = context.read<BasicDetailsBloc>();
-      bloc.add(
-        SubmitBasicDetails(saveAndExit: saveAndExit),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all required fields.")),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => BasicDetailsBloc(
-        eventRepository: context.read(),
-        imageUploadService: context.read(),
-        eventId: widget.eventId,
-      ),
-      child: BlocConsumer<BasicDetailsBloc, BasicDetailsState>(
-        listener: (context, state) {
-          if (state is BasicDetailsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${state.message}')),
-            );
-          } else if (state is BasicDetailsValid) {
-            widget.onUpdateFormData(state.formData);
-          }
-        },
-        builder: (context, state) {
-          return Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Event Details",
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  _buildTextInput(
-                    label: "Event Name",
-                    controller: _eventNameController,
-                    onChanged: (value) => context
-                        .read<BasicDetailsBloc>()
-                        .add(UpdateField(field: "eventName", value: value)),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Event name is required.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16.0),
-                  CreateEventImageUpload(eventId: widget.eventId),
-                  const SizedBox(height: 16.0),
-                  _buildTextInput(
-                    label: "Event Description",
-                    controller: _descriptionController,
-                    maxLines: 4,
-                    onChanged: (value) => context
-                        .read<BasicDetailsBloc>()
-                        .add(UpdateField(field: "description", value: value)),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Event description is required.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16.0),
-                  _buildDateAndTimePicker(
-                    label: "Start Date & Time",
-                    isStart: true,
-                  ),
-                  const SizedBox(height: 16.0),
-                  _buildDateAndTimePicker(
-                    label: "End Date & Time",
-                    isStart: false,
-                  ),
-                  const SizedBox(height: 16.0),
-                  _buildTextInput(
-                    label: "Venue",
-                    controller: _venueController,
-                    onChanged: (value) => context
-                        .read<BasicDetailsBloc>()
-                        .add(UpdateField(field: "venue", value: value)),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Venue is required.";
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24.0),
-                  _buildButtons(context),
-                ],
-              ),
-            ),
+    return BlocConsumer<BasicDetailsBloc, BasicDetailsState>(
+      listener: (context, state) {
+        if (state is BasicDetailsError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${state.message}')),
           );
-        },
-      ),
-    );
-  }
+        }
+      },
+      builder: (context, state) {
+        final formData =
+            state is BasicDetailsValid ? state.formData : <String, dynamic>{};
 
-  Widget _buildButtons(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        TextButton(
-          onPressed: () => _submitForm(context, saveAndExit: true),
-          child: const Text("Save & Exit"),
-        ),
-        ElevatedButton(
-          onPressed: () => _submitForm(context, saveAndExit: false),
-          child: const Text("Next"),
-        ),
-      ],
+        return Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Event Details",
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                _buildTextInput(
+                  label: "Event Name",
+                  controller: _eventNameController,
+                  onChanged: (value) => context
+                      .read<BasicDetailsBloc>()
+                      .add(UpdateField(field: "eventName", value: value)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Event name is required.";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                CreateEventImageUpload(eventId: widget.eventId),
+                const SizedBox(height: 16.0),
+                _buildTextInput(
+                  label: "Event Description",
+                  controller: _descriptionController,
+                  maxLines: 4,
+                  onChanged: (value) => context
+                      .read<BasicDetailsBloc>()
+                      .add(UpdateField(field: "description", value: value)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Event description is required.";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                _buildDateAndTimePicker(
+                  label: "Start Date & Time",
+                  formData: formData,
+                  isStart: true,
+                ),
+                const SizedBox(height: 16.0),
+                _buildDateAndTimePicker(
+                  label: "End Date & Time",
+                  formData: formData,
+                  isStart: false,
+                ),
+                const SizedBox(height: 16.0),
+                _buildTextInput(
+                  label: "Venue",
+                  controller: _venueController,
+                  onChanged: (value) => context
+                      .read<BasicDetailsBloc>()
+                      .add(UpdateField(field: "venue", value: value)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Venue is required.";
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -179,7 +166,7 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: "Enter $label",
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
           validator: validator,
           onChanged: onChanged,
@@ -190,6 +177,7 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
 
   Widget _buildDateAndTimePicker({
     required String label,
+    required Map<String, dynamic> formData,
     required bool isStart,
   }) {
     return Column(
@@ -199,12 +187,8 @@ class BasicDetailsScreenState extends State<BasicDetailsScreen> {
         const SizedBox(height: 8.0),
         CreateEventDatePicker(
           label: label,
-          date: context
-              .read<BasicDetailsBloc>()
-              .formData[isStart ? "startDateTime" : "endDateTime"],
-          time: context
-              .read<BasicDetailsBloc>()
-              .formData[isStart ? "startTime" : "endTime"],
+          date: formData[isStart ? "startDateTime" : "endDateTime"],
+          time: formData[isStart ? "startTime" : "endTime"],
           onDatePicked: (pickedDate) => context.read<BasicDetailsBloc>().add(
                 UpdateField(
                   field: isStart ? "startDateTime" : "endDateTime",

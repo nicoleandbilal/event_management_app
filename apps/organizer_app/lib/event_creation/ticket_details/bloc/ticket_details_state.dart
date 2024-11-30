@@ -1,8 +1,7 @@
-// ticket_details_state.dart
-
 import 'package:equatable/equatable.dart';
 import 'package:shared/models/ticket_model.dart';
 
+/// Base class for all Ticket Details states
 abstract class TicketDetailsState extends Equatable {
   const TicketDetailsState();
 
@@ -10,36 +9,23 @@ abstract class TicketDetailsState extends Equatable {
   List<Object?> get props => [];
 }
 
-// Initial state
+/// Initial state of the Ticket Details step
 class TicketDetailsInitial extends TicketDetailsState {}
 
-// Loading state
+/// State indicating a loading operation
 class TicketDetailsLoading extends TicketDetailsState {}
 
-// Draft initialized with ticket data
-class TicketDraftInitialized extends TicketDetailsState {
-  final String ticketId;
-
-  const TicketDraftInitialized({required this.ticketId});
-
-  @override
-  List<Object?> get props => [ticketId];
-}
-
-// State when ticket details are saved successfully
-class TicketDetailsSaved extends TicketDetailsState {}
-
-// State when a ticket is added to the list
-class TicketAddedToList extends TicketDetailsState {
+/// State when the ticket list is successfully updated
+class TicketListUpdated extends TicketDetailsState {
   final List<Ticket> ticketList;
 
-  const TicketAddedToList({required this.ticketList});
+  const TicketListUpdated(this.ticketList);
 
   @override
   List<Object?> get props => [ticketList];
 }
 
-// Error state in ticket details
+/// State indicating a failure during ticket operations
 class TicketDetailsFailure extends TicketDetailsState {
   final String error;
 
@@ -47,4 +33,14 @@ class TicketDetailsFailure extends TicketDetailsState {
 
   @override
   List<Object?> get props => [error];
+}
+
+/// State when a draft ticket is initialized
+class TicketDraftInitialized extends TicketDetailsState {
+  final Ticket draftTicket;
+
+  const TicketDraftInitialized(this.draftTicket);
+
+  @override
+  List<Object?> get props => [draftTicket];
 }

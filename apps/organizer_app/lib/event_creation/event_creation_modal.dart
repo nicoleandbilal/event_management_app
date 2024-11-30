@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:organizer_app/event_creation/basic_details/basic_details_screen.dart';
+import 'package:organizer_app/event_creation/basic_details/basic_details_service.dart';
 import 'package:organizer_app/event_creation/basic_details/bloc/basic_details_bloc.dart';
+import 'package:organizer_app/event_creation/basic_details/bloc/basic_details_state.dart';
+import 'package:organizer_app/event_creation/event_cover_image/event_image_upload_service.dart';
 import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_bloc.dart';
 import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_event.dart';
 import 'package:organizer_app/event_creation/event_creation_bloc/event_creation_state.dart';
+import 'package:organizer_app/event_creation/save_event_service.dart';
 import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_bloc.dart';
 import 'package:organizer_app/event_creation/ticket_details/ticket_details_screen.dart';
-import 'package:shared/models/event_model.dart';
+import 'package:organizer_app/event_creation/ticket_details/ticket_details_service.dart';
 import 'package:shared/repositories/event_repository.dart';
 import 'package:shared/repositories/ticket_repository.dart';
 import '../event_list/event_list_screen.dart';
@@ -25,14 +29,36 @@ class EventCreationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => EventCreationBloc(
-        eventRepository: context.read<EventRepository>(),
-        ticketRepository: context.read<TicketRepository>(),
-        basicDetailsBloc: context.read<BasicDetailsBloc>(),
-        ticketDetailsBloc: context.read<TicketDetailsBloc>(),
-        logger: Logger(),
-      )..add(InitializeEventCreation(userId)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<EventCreationBloc>(
+          create: (context) => EventCreationBloc(
+            saveEventService: context.read<SaveEventService>(),
+            logger: Logger(),
+          )..add(InitializeEventCreation(userId)),
+        ),
+        BlocProvider<BasicDetailsBloc>(
+          create: (context) => BasicDetailsBloc(
+            basicDetailsService: BasicDetailsService(
+              eventRepository: context.read<EventRepository>(),
+              logger: Logger(),
+              imageUploadService: context.read<ImageUploadService>(),
+            ),
+            logger: Logger(),
+            eventId: '',
+          ),
+        ),
+        BlocProvider<TicketDetailsBloc>(
+          create: (context) => TicketDetailsBloc(
+            ticketDetailsService: TicketDetailsService(
+              ticketRepository: context.read<TicketRepository>(),
+              logger: Logger(),
+            ),
+            logger: Logger(),
+            eventId: '',
+          ),
+        ),
+      ],
       child: _EventCreationView(),
     );
   }
@@ -78,10 +104,7 @@ class __EventCreationViewState extends State<_EventCreationView>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Background Screen
         const EventListScreen(),
-
-        // Animated Opacity Layer
         AnimatedBuilder(
           animation: _opacityAnimation,
           builder: (context, child) {
@@ -90,8 +113,6 @@ class __EventCreationViewState extends State<_EventCreationView>
             );
           },
         ),
-
-        // Draggable Modal
         EventCreationModal(
           onShowModal: showModal,
           onHideModal: hideModal,
@@ -112,10 +133,10 @@ class EventCreationModal extends StatefulWidget {
   });
 
   @override
-  EventCreationModalState createState() => EventCreationModalState();
+  State<EventCreationModal> createState() => _EventCreationModalState();
 }
 
-class EventCreationModalState extends State<EventCreationModal>
+class _EventCreationModalState extends State<EventCreationModal>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _offsetAnimation;
@@ -142,18 +163,16 @@ class EventCreationModalState extends State<EventCreationModal>
     _animationController.value -= dragDelta / MediaQuery.of(context).size.height;
   }
 
-void _onDragEnd(DragEndDetails details) {
-  if (_animationController.value < 0.5) {
-    widget.onHideModal();
-    _animationController.reverse().then((_) {
-      // Navigate back or clean up state after modal is fully dismissed
-      Navigator.of(context).pop();
-    });
-  } else {
-    _animationController.forward();
+  void _onDragEnd(DragEndDetails details) {
+    if (_animationController.value < 0.5) {
+      widget.onHideModal();
+      _animationController.reverse().then((_) {
+        Navigator.of(context).pop();
+      });
+    } else {
+      _animationController.forward();
+    }
   }
-}
-
 
   @override
   void dispose() {
@@ -192,6 +211,7 @@ void _onDragEnd(DragEndDetails details) {
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
+                      _buildTopBar(context),
                       Expanded(
                         child: BlocConsumer<EventCreationBloc, EventCreationState>(
                           listener: (context, state) {
@@ -199,6 +219,9 @@ void _onDragEnd(DragEndDetails details) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(state.message)),
                               );
+                            } else if (state is EventCreationSaved) {
+                              widget.onHideModal();
+                              Navigator.of(context).pop();
                             }
                           },
                           builder: (context, state) {
@@ -207,7 +230,6 @@ void _onDragEnd(DragEndDetails details) {
                             } else if (state is EventCreationLoaded) {
                               return Column(
                                 children: [
-                                  _buildTopBar(context),
                                   Expanded(
                                     child: _buildContent(context, state),
                                   ),
@@ -229,7 +251,6 @@ void _onDragEnd(DragEndDetails details) {
       },
     );
   }
-}
 
   Widget _buildTopBar(BuildContext context) {
     return Padding(
@@ -239,13 +260,15 @@ void _onDragEnd(DragEndDetails details) {
         children: [
           TextButton(
             onPressed: () {
-              final currentState =
-                  context.read<EventCreationBloc>().state as EventCreationLoaded;
-              context.read<EventCreationBloc>().add(SaveAndExit(
-                currentState.eventId,
-                const {}, // Provide updated form data
-              ));
-              Navigator.pop(context); // Dismiss the modal
+              final state = context.read<EventCreationBloc>().state;
+              if (state is EventCreationLoaded) {
+                final currentFormData = _collectCurrentFormData(context);
+                context.read<EventCreationBloc>().add(SaveAndExit(
+                      eventId: state.eventId,
+                      step: EventStep.values[state.currentStep],
+                      updatedData: currentFormData,
+                    ));
+              }
             },
             child: const Text("Save & Exit"),
           ),
@@ -279,25 +302,16 @@ void _onDragEnd(DragEndDetails details) {
       case 0:
         return const Center(child: Text("Splash/Intro Screen"));
       case 1:
-        return BasicDetailsScreen(
-          eventId: state.eventId,
-          onUpdateFormData: (formData) {
-            context.read<EventCreationBloc>().add(NextStep(formData: formData));
-          },
-        );
-      case 2: 
-        return TicketDetailsScreen(
-          eventId: state.eventId,
-        );
-
-
+        return BasicDetailsScreen(eventId: state.eventId);
+      case 2:
+        return TicketDetailsScreen(eventId: state.eventId);
       default:
-        return Center(child: Text("Step ${state.currentStep}"));
+        return const Center(child: Text("Unknown Step"));
     }
   }
 
   Widget _buildBottomNavigation(BuildContext context, EventCreationLoaded state) {
-    final isLastStep = state.currentStep == 2;
+    final isLastStep = state.currentStep == EventStep.values.length - 1;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -313,28 +327,39 @@ void _onDragEnd(DragEndDetails details) {
             ),
           ElevatedButton(
             onPressed: () {
+              final currentFormData = _collectCurrentFormData(context);
               if (isLastStep) {
-                context.read<EventCreationBloc>().add(PublishEvent(
-                  Event(
-                    eventId: '',
-                    createdByUserId: '',
-                    eventName: '',
-                    description: '',
-                    category: '',
-                    startDateTime: DateTime.now(),
-                    endDateTime: DateTime.now().add(const Duration(hours: 2)),
-                    venue: '',
-                    status: "draft",
-                    createdAt: DateTime.now(),
-                  ),
-                ));
+                context.read<EventCreationBloc>().add(PublishEvent(state.eventId));
               } else {
-                context.read<EventCreationBloc>().add(NextStep());
+                context.read<EventCreationBloc>().add(NextStep(
+                  step: EventStep.values[state.currentStep],
+                  updatedData: currentFormData,
+                ));
               }
             },
-            child: Text(isLastStep ? "Finish" : "Next"),
+            child: Text(isLastStep ? "Publish" : "Next"),
           ),
         ],
       ),
     );
   }
+
+  Map<String, dynamic> _collectCurrentFormData(BuildContext context) {
+    final currentState = context.read<EventCreationBloc>().state;
+    if (currentState is EventCreationLoaded) {
+      switch (currentState.currentStep) {
+        case 1: // BasicDetails step
+          final basicDetailsState = context.read<BasicDetailsBloc>().state;
+          if (basicDetailsState is BasicDetailsValid) {
+            return basicDetailsState.formData;
+          }
+          break;
+        case 2: // TicketDetails step
+          return {}; // Placeholder for TicketDetailsBloc logic
+        default:
+          return {};
+      }
+    }
+    return {};
+  }
+}

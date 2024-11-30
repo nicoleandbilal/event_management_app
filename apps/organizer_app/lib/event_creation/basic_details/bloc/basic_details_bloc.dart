@@ -1,25 +1,25 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:organizer_app/event_creation/event_cover_image/event_image_upload_service.dart';
-import 'package:shared/repositories/event_repository.dart';
+import 'package:logger/logger.dart';
+import 'package:organizer_app/event_creation/basic_details/basic_details_service.dart';
 import 'basic_details_event.dart';
 import 'basic_details_state.dart';
-import 'package:logger/logger.dart';
 
+/// Bloc for managing Basic Details logic and state
 class BasicDetailsBloc extends Bloc<BasicDetailsEvent, BasicDetailsState> {
-  final EventRepository eventRepository;
-  final ImageUploadService imageUploadService;
-  final Logger _logger = Logger();
+  final BasicDetailsService basicDetailsService;
+  final Logger logger;
   final String eventId;
 
-  // Field variables for temporary storage
-  final Map<String, dynamic> formData = {};
-  String? fullImageUrl;
-  String? croppedImageUrl;
+  /// In-memory form data storage
+  final Map<String, dynamic> _formData = {};
+
+  /// Map to store debounce timers for fields
+  final Map<String, Timer> _debounceTimers = {};
 
   BasicDetailsBloc({
-    required this.eventRepository,
-    required this.imageUploadService,
+    required this.basicDetailsService,
+    required this.logger,
     required this.eventId,
   }) : super(BasicDetailsInitial()) {
     on<UpdateField>(_onUpdateField);
@@ -28,74 +28,124 @@ class BasicDetailsBloc extends Bloc<BasicDetailsEvent, BasicDetailsState> {
     on<DeleteEventImage>(_onDeleteEventImage);
   }
 
-  /// Handles field updates triggered by `UpdateField` events.
-  void _onUpdateField(UpdateField event, Emitter<BasicDetailsState> emit) {
-    formData[event.field] = event.value;
-    _logger.d('Field "${event.field}" updated with value: ${event.value}');
+  /// Updates form data for a given field with a debounce mechanism
+  Future<void> _onUpdateField(UpdateField event, Emitter<BasicDetailsState> emit) async {
+    if (_debounceTimers[event.field] != null) {
+      _debounceTimers[event.field]!.cancel();
+    }
+
+    // Use a debounce to reduce state updates
+    _debounceTimers[event.field] = Timer(const Duration(milliseconds: 300), () {
+      _formData[event.field] = event.value;
+      logger.d('Field "${event.field}" updated with value: ${event.value}');
+      if (!emit.isDone) {
+        emit(BasicDetailsValid(Map<String, dynamic>.from(_formData)));
+      }
+    });
   }
 
-  /// Handles form submission and validation, triggered by `SubmitBasicDetails` events.
+  /// Handles form submission with validation and saving
   Future<void> _onSubmitBasicDetails(
       SubmitBasicDetails event, Emitter<BasicDetailsState> emit) async {
-    // Proceed to save the draft
+    emit(BasicDetailsLoading());
+
     try {
-      emit(BasicDetailsLoading());
-      _logger.i("Submitting form data: $formData");
+      // Validation: Ensure all required fields are present
+      final requiredFields = ['eventName', 'startDateTime', 'endDateTime', 'venue'];
+      final missingFields = requiredFields
+          .where((field) =>
+              _formData[field] == null || _formData[field].toString().isEmpty)
+          .toList();
 
-      // Save form data to Firestore
-      await eventRepository.updateDraftEvent(eventId, formData);
-
-      emit(BasicDetailsValid(formData));
-
-      if (event.saveAndExit) {
-        emit(BasicDetailsSaved()); // Indicate successful save and exit
-        _logger.i("Form data saved successfully for event ID: $eventId");
+      if (missingFields.isNotEmpty) {
+        final errorMessage = "Missing Fields: ${missingFields.join(', ')}";
+        logger.e(errorMessage);
+        if (!emit.isDone) {
+          emit(BasicDetailsError(errorMessage));
+        }
+        return;
       }
-    } catch (error) {
-      _logger.e('Error saving details: $error');
-      emit(BasicDetailsError("Failed to save details. Please try again."));
+
+      await basicDetailsService.saveBasicDetails(eventId, Map<String, dynamic>.from(_formData));
+
+      if (!emit.isDone) {
+        if (event.saveAndExit) {
+          emit(BasicDetailsSaved());
+          logger.i('Basic details saved and exited for event ID: $eventId.');
+        } else {
+          emit(BasicDetailsValid(Map<String, dynamic>.from(_formData)));
+          logger.i('Basic details successfully submitted for event ID: $eventId.');
+        }
+      }
+    } catch (e) {
+      logger.e('Failed to save basic details for event ID: $eventId: $e');
+      if (!emit.isDone) {
+        emit(const BasicDetailsError('Failed to save basic details. Please try again.'));
+      }
     }
   }
 
-  /// Handles event image uploads, triggered by `UploadEventImage` events.
+  /// Handles image uploads and updates form data
   Future<void> _onUploadEventImage(
       UploadEventImage event, Emitter<BasicDetailsState> emit) async {
     emit(EventImageUploading());
+
     try {
-      final imageUrls = await imageUploadService.uploadFullAndCroppedImages(
-        event.fullImage,
-        event.croppedImage,
-        eventId,
+      logger.i('Uploading images for event ID: $eventId');
+      final imageUrls = await basicDetailsService.uploadEventImages(
+        eventId: eventId,
+        fullImage: event.fullImage,
+        croppedImage: event.croppedImage,
       );
 
-      formData["fullImageUrl"] = imageUrls['fullImageUrl'];
-      formData["croppedImageUrl"] = imageUrls['croppedImageUrl'];
+      _formData['fullImageUrl'] = imageUrls['fullImageUrl'];
+      _formData['croppedImageUrl'] = imageUrls['croppedImageUrl'];
 
-      emit(EventImageUploadSuccess(
-        formData["fullImageUrl"],
-        formData["croppedImageUrl"],
-      ));
-      _logger.i("Image uploaded successfully for event ID: $eventId");
-    } catch (error) {
-      _logger.e('Image upload failed: $error');
-      emit(BasicDetailsError("Image upload failed. Please try again."));
+      if (!emit.isDone) {
+        emit(EventImageUploadSuccess(
+          fullImageUrl: imageUrls['fullImageUrl'],
+          croppedImageUrl: imageUrls['croppedImageUrl'],
+        ));
+      }
+      logger.i('Images uploaded successfully for event ID: $eventId.');
+    } catch (e) {
+      logger.e('Failed to upload images for event ID: $eventId: $e');
+      if (!emit.isDone) {
+        emit(const BasicDetailsError('Failed to upload images. Please try again.'));
+      }
     }
   }
 
-  /// Handles event image deletions, triggered by `DeleteEventImage` events.
+  /// Handles image deletions and updates form data
   Future<void> _onDeleteEventImage(
       DeleteEventImage event, Emitter<BasicDetailsState> emit) async {
     emit(EventImageDeleting());
-    try {
-      await imageUploadService.deleteEventCoverImages(eventId);
-      formData.remove("fullImageUrl");
-      formData.remove("croppedImageUrl");
 
-      emit(EventImageDeleteSuccess());
-      _logger.i("Image deleted successfully for event ID: $eventId");
-    } catch (error) {
-      _logger.e('Image deletion failed: $error');
-      emit(BasicDetailsError("Image deletion failed. Please try again."));
+    try {
+      logger.i('Deleting images for event ID: $eventId');
+      await basicDetailsService.deleteEventImages(eventId);
+
+      _formData.remove('fullImageUrl');
+      _formData.remove('croppedImageUrl');
+
+      if (!emit.isDone) {
+        emit(EventImageDeleteSuccess());
+      }
+      logger.i('Images deleted successfully for event ID: $eventId.');
+    } catch (e) {
+      logger.e('Failed to delete images for event ID: $eventId: $e');
+      if (!emit.isDone) {
+        emit(const BasicDetailsError('Failed to delete images. Please try again.'));
+      }
     }
+  }
+
+  @override
+  Future<void> close() {
+    // Cancel all timers on bloc disposal
+    for (var timer in _debounceTimers.values) {
+      timer.cancel();
+    }
+    return super.close();
   }
 }

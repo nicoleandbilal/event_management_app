@@ -1,8 +1,7 @@
-// ticket_details_event.dart
-
 import 'package:equatable/equatable.dart';
 import 'package:shared/models/ticket_model.dart';
 
+/// Base class for all Ticket Details events
 abstract class TicketDetailsEvent extends Equatable {
   const TicketDetailsEvent();
 
@@ -10,7 +9,7 @@ abstract class TicketDetailsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// Initialize a new draft ticket
+/// Event to initialize a draft ticket
 class InitializeDraftTicket extends TicketDetailsEvent {
   final String eventId;
 
@@ -20,22 +19,34 @@ class InitializeDraftTicket extends TicketDetailsEvent {
   List<Object?> get props => [eventId];
 }
 
-// Save ticket details as a draft
-class SaveTicketDetailsEvent extends TicketDetailsEvent {
-  final Ticket ticket;
+/// Event to fetch the ticket list
+class FetchTicketList extends TicketDetailsEvent {
+  final String eventId;
 
-  const SaveTicketDetailsEvent({required this.ticket});
+  const FetchTicketList({required this.eventId});
 
   @override
-  List<Object?> get props => [ticket];
+  List<Object?> get props => [eventId];
 }
 
-// Add ticket to the ticket list
-class AddTicketToListEvent extends TicketDetailsEvent {
+/// Event to add a ticket to the event
+class AddTicketToEvent extends TicketDetailsEvent {
+  final String eventId;
   final Ticket ticket;
 
-  const AddTicketToListEvent({required this.ticket});
+  const AddTicketToEvent({required this.eventId, required this.ticket});
 
   @override
-  List<Object?> get props => [ticket];
+  List<Object?> get props => [eventId, ticket];
+}
+
+/// Event to delete a ticket
+class DeleteTicket extends TicketDetailsEvent {
+  final String eventId;
+  final String ticketId;
+
+  const DeleteTicket({required this.eventId, required this.ticketId});
+
+  @override
+  List<Object?> get props => [eventId, ticketId];
 }

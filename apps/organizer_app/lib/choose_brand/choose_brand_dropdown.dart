@@ -74,9 +74,9 @@ class _ChooseBrandDropdownState extends State<ChooseBrandDropdown> {
                 value: _selectedBrand,
                 hint: const Text('Select Brand'),
                 items: [
-                  DropdownMenuItem<String>(
+                  const DropdownMenuItem<String>(
                     value: "all",
-                    child: const Text("All Brands"),
+                    child: Text("All Brands"),
                   ),
                   ...state.brands.map((brand) {
                     return DropdownMenuItem<String>(

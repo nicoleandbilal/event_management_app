@@ -47,7 +47,7 @@ class ImageUploadService {
           _logger.e("Image upload failed after $retryCount attempts.", error: e);
           rethrow;
         }
-        await Future.delayed(Duration(seconds: 2)); // Delay before retrying
+        await Future.delayed(const Duration(seconds: 2)); // Delay before retrying
       }
     }
 

@@ -1,65 +1,85 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_event.dart';
 import 'package:organizer_app/event_creation/ticket_details/bloc/ticket_details_state.dart';
+import 'package:organizer_app/event_creation/ticket_details/ticket_details_service.dart';
 import 'package:shared/models/ticket_model.dart';
-import 'package:shared/repositories/ticket_repository.dart';
+import 'package:logger/logger.dart';
 
 class TicketDetailsBloc extends Bloc<TicketDetailsEvent, TicketDetailsState> {
-  final TicketRepository ticketRepository;
-  Ticket? draftTicket; // Holds the current draft ticket
-  List<Ticket> ticketList = []; // Tracks all tickets for the event
+  final TicketDetailsService ticketDetailsService;
+  final Logger logger;
+  final String eventId;
 
-  TicketDetailsBloc({required this.ticketRepository}) : super(TicketDetailsInitial()) {
+  TicketDetailsBloc({
+    required this.ticketDetailsService,
+    required this.logger,
+    required this.eventId,
+  }) : super(TicketDetailsInitial()) {
     on<InitializeDraftTicket>(_onInitializeDraftTicket);
-    on<SaveTicketDetailsEvent>(_onSaveTicketDetailsEvent);
-    on<AddTicketToListEvent>(_onAddTicketToListEvent);
+    on<AddTicketToEvent>(_onAddTicketToEvent);
+    on<FetchTicketList>(_onFetchTicketList);
+    on<DeleteTicket>(_onDeleteTicket);
   }
 
-  // Initializes a ticket draft
-  Future<void> _onInitializeDraftTicket(
-      InitializeDraftTicket event, Emitter<TicketDetailsState> emit) async {
+  void _onInitializeDraftTicket(
+      InitializeDraftTicket event, Emitter<TicketDetailsState> emit) {
     emit(TicketDetailsLoading());
     try {
-      draftTicket = Ticket(
+      final draftTicket = Ticket(
         ticketId: '',
         eventId: event.eventId,
-        ticketType: 'Standard',
+        ticketType: 'Paid',
         ticketName: '',
         ticketPrice: 0.0,
         availableQuantity: 0,
         soldQuantity: 0,
+        description: '',
         isRefundable: true,
-        isSoldOut: false,
+        ticketSaleStartDateTime: null,
+        ticketSaleEndDateTime: null,
       );
-
-      final ticketId = await ticketRepository.createDraftTicket(event.eventId, draftTicket!);
-      draftTicket = draftTicket!.copyWith(ticketId: ticketId);
-      emit(TicketDraftInitialized(ticketId: ticketId));
+      emit(TicketDraftInitialized(draftTicket));
     } catch (e) {
-      emit(TicketDetailsFailure("Failed to initialize draft ticket: $e"));
+      logger.e('Error initializing draft ticket: $e');
+      emit(const TicketDetailsFailure('Failed to initialize draft ticket.'));
     }
   }
 
-  // Saves ticket details
-  Future<void> _onSaveTicketDetailsEvent(
-      SaveTicketDetailsEvent event, Emitter<TicketDetailsState> emit) async {
+  Future<void> _onAddTicketToEvent(
+      AddTicketToEvent event, Emitter<TicketDetailsState> emit) async {
     emit(TicketDetailsLoading());
-    if (draftTicket != null) {
-      draftTicket = event.ticket.copyWith(ticketId: draftTicket!.ticketId);
-
-      try {
-        await ticketRepository.updateDraftTicket(draftTicket!.eventId, draftTicket!);
-        emit(TicketDetailsSaved()); // Emit saved state
-      } catch (e) {
-        emit(TicketDetailsFailure("Failed to save ticket details: $e"));
-      }
+    try {
+      await ticketDetailsService.addTicket(event.eventId, event.ticket);
+      final tickets = await ticketDetailsService.getTickets(event.eventId);
+      emit(TicketListUpdated(tickets));
+    } catch (e) {
+      logger.e('Error adding ticket: $e');
+      emit(const TicketDetailsFailure('Failed to add ticket.'));
     }
   }
 
-  // Adds ticket to list and resets draft
-  void _onAddTicketToListEvent(AddTicketToListEvent event, Emitter<TicketDetailsState> emit) {
-    ticketList.add(event.ticket);
-    draftTicket = null;
-    emit(TicketAddedToList(ticketList: ticketList));
+  Future<void> _onFetchTicketList(
+      FetchTicketList event, Emitter<TicketDetailsState> emit) async {
+    emit(TicketDetailsLoading());
+    try {
+      final tickets = await ticketDetailsService.getTickets(event.eventId);
+      emit(TicketListUpdated(tickets));
+    } catch (e) {
+      logger.e('Error fetching tickets: $e');
+      emit(const TicketDetailsFailure('Failed to fetch tickets.'));
+    }
+  }
+
+  Future<void> _onDeleteTicket(
+      DeleteTicket event, Emitter<TicketDetailsState> emit) async {
+    emit(TicketDetailsLoading());
+    try {
+      await ticketDetailsService.deleteTicket(event.eventId, event.ticketId);
+      final tickets = await ticketDetailsService.getTickets(event.eventId);
+      emit(TicketListUpdated(tickets));
+    } catch (e) {
+      logger.e('Error deleting ticket: $e');
+      emit(const TicketDetailsFailure('Failed to delete ticket.'));
+    }
   }
 }
