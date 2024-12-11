@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
@@ -51,10 +52,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => RegistrationBloc(
-        authRepository: context.read<AuthRepository>(),
-        userRepository: context.read<UserRepository>(),
-      ),
+  create: (context) => RegistrationBloc(
+    authRepository: GetIt.instance<AuthRepository>(),
+    userRepository: GetIt.instance<UserRepository>(),
+  ),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Center(

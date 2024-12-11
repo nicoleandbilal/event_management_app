@@ -5,7 +5,7 @@ class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final Logger _logger = Logger();
 
-  AuthRepository({FirebaseAuth? firebaseAuth})
+  AuthRepository(FirebaseAuth auth, Logger logger, {FirebaseAuth? firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
   // Stream to track auth state changes

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/repositories/auth_repository.dart';
@@ -49,11 +50,11 @@ class LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => LoginBloc(
-        authRepository: context.read<AuthRepository>(),
-        authBloc: context.read<AuthBloc>(),
-      ),
+  return BlocProvider(
+    create: (_) => LoginBloc(
+      authRepository: GetIt.instance<AuthRepository>(), // Use GetIt here
+      authBloc: context.read<AuthBloc>(),               // Retrieve AuthBloc from context
+    ),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Center(

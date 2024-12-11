@@ -1,12 +1,13 @@
 // auth_service.dart
 
+import 'package:logger/src/logger.dart';
 import 'package:shared/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
   final AuthRepository _authRepository;
 
-  AuthService(this._authRepository);
+  AuthService(this._authRepository, {required AuthRepository authRepository, required Logger logger});
 
   /// Retrieves the current authenticated user's ID, or null if not authenticated
   String? getCurrentUserId() {

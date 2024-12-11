@@ -1,14 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_bloc.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_state.dart';
-import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
-import 'package:organizer_app/create_brand_new/create_brand_form.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_bloc.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_state.dart';
+import 'package:organizer_app/create_brand/brand_image_uploader_service.dart';
+import 'package:organizer_app/create_brand/widgets/create_brand_form.dart';
 import 'package:shared/repositories/brand_repository.dart';
-import 'package:shared/repositories/image_repository.dart';
 import 'package:shared/repositories/user_repository.dart';
 
 class CreateBrandScreen extends StatelessWidget {
@@ -16,58 +14,40 @@ class CreateBrandScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<BrandRepository>(
-          create: (context) => BrandRepository(
-            firestore: FirebaseFirestore.instance,
+    // Resolve dependencies from GetIt for local injection
+    final brandRepository = GetIt.instance<BrandRepository>();
+    final brandImageUploaderService = GetIt.instance<BrandImageUploaderService>();
+    final userRepository = GetIt.instance<UserRepository>();
+
+    return BlocProvider<CreateBrandFormBloc>(
+      create: (_) => CreateBrandFormBloc(
+        brandRepository: brandRepository,
+        brandImageUploaderService: brandImageUploaderService,
+        userRepository: userRepository,
+      ),
+      child: BlocListener<CreateBrandFormBloc, CreateBrandFormState>(
+        listener: (context, state) {
+          if (state is CreateBrandFormSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Brand created successfully!')),
+            );
+            context.pop();
+            // Navigate to the profile page or another desired screen
+          } else if (state is CreateBrandFormFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${state.error}')),
+            );
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Create Brand'),
           ),
-        ),
-        RepositoryProvider<ImageRepository>(
-          create: (context) => ImageRepository(
-            storage: FirebaseStorage.instance,
-          ),
-        ),
-        RepositoryProvider<ImageUploadService>(
-          create: (context) => ImageUploadService(
-            RepositoryProvider.of<ImageRepository>(context),
-          ),
-        ),
-        RepositoryProvider<UserRepository>(
-          create: (context) => UserRepository(
-            firestore: FirebaseFirestore.instance,
-          ),
-        ),
-      ],
-      child: BlocProvider(
-        create: (context) => CreateBrandFormBloc(
-          RepositoryProvider.of<BrandRepository>(context),
-          RepositoryProvider.of<ImageUploadService>(context),
-          RepositoryProvider.of<UserRepository>(context), // Provide UserRepository
-        ),
-        child: BlocListener<CreateBrandFormBloc, CreateBrandFormState>(
-          listener: (context, state) {
-            if (state is CreateBrandFormSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Brand created successfully!')),
-              );
-              context.go('/profile');
-            } else if (state is CreateBrandFormFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: ${state.error}')),
-              );
-            }
-          },
-          child: Scaffold(
-            appBar: AppBar(
-              title: const Text('Create Brand'),
-            ),
-            body: const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: SingleChildScrollView(
-                child: CreateBrandForm(),
+          body: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: CreateBrandForm(
+                brandImageUploaderService: brandImageUploaderService,
               ),
-            ),
           ),
         ),
       ),

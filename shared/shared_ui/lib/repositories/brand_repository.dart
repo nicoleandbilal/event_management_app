@@ -49,24 +49,34 @@ class BrandRepository {
   }
 
   // Fetch multiple brands by a list of brand IDs
-  Future<List<Brand>> getBrandsByIds(List<String> brandIds) async {
-    try {
-      if (brandIds.isEmpty) return []; // Return empty list if no IDs provided
+Future<List<Brand>> getBrandsByIds(List<String> brandIds) async {
+  try {
+    if (brandIds.isEmpty) return [];
 
-      print('Fetching brands with IDs: $brandIds');
+    List<Brand> brands = [];
+    final chunks = _splitList(brandIds, 10);
 
+    for (var chunk in chunks) {
       final QuerySnapshot querySnapshot = await firestore
           .collection('brands')
-          .where(FieldPath.documentId, whereIn: brandIds)
+          .where(FieldPath.documentId, whereIn: chunk)
           .get();
-
-      final brands = querySnapshot.docs.map((doc) => Brand.fromDocument(doc)).toList();
-      print('Retrieved brands: ${brands.map((b) => b.brandName).toList()}');
-      
-      return brands;
-    } catch (e) {
-      print('Error fetching brands: $e');
-      throw Exception('Error fetching brands');
+      brands.addAll(querySnapshot.docs.map((doc) => Brand.fromDocument(doc)).toList());
     }
+    return brands;
+  } catch (e) {
+    throw Exception('Error fetching brands: $e');
   }
+}
+
+// Utility function to split list
+List<List<T>> _splitList<T>(List<T> list, int chunkSize) {
+  return List.generate(
+    (list.length / chunkSize).ceil(),
+    (i) => list.sublist(
+      i * chunkSize,
+      (i * chunkSize + chunkSize).clamp(0, list.length),
+    ),
+  );
+}
 }

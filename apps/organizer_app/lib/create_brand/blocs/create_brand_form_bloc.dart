@@ -1,20 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_event.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_state.dart';
-import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_event.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_state.dart';
+import 'package:organizer_app/create_brand/brand_image_uploader_service.dart';
 import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/repositories/user_repository.dart';
 
 class CreateBrandFormBloc extends Bloc<CreateBrandFormEvent, CreateBrandFormState> {
   final BrandRepository brandRepository;
-  final ImageUploadService imageUploadService;
+  final BrandImageUploaderService brandImageUploaderService;
   final UserRepository userRepository;
 
-  CreateBrandFormBloc(
-    this.brandRepository,
-    this.imageUploadService,
-    this.userRepository, // Inject UserRepository here
-  ) : super(CreateBrandFormInitial()) {
+  CreateBrandFormBloc({
+    required this.brandRepository,
+    required this.brandImageUploaderService,
+    required this.userRepository,
+  }) : super(CreateBrandFormInitial()) {
     on<CreateDraftBrand>(_onCreateDraftBrand);
     on<SubmitCreateBrandForm>(_onSubmitCreateBrandForm);
     on<UpdateImageUrls>(_onUpdateImageUrls);
@@ -71,7 +71,9 @@ class CreateBrandFormBloc extends Bloc<CreateBrandFormEvent, CreateBrandFormStat
     ));
   }
 
-  void _onDeleteImageUrls(DeleteImageUrls event, Emitter<CreateBrandFormState> emit) {
+  void _onDeleteImageUrls(
+    DeleteImageUrls event, 
+    Emitter<CreateBrandFormState> emit) {
     emit(const CreateBrandFormImageUrlsUpdated());
   }
 }

@@ -1,7 +1,5 @@
-// profile_screen.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/repositories/brand_repository.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
@@ -11,15 +9,14 @@ class OrganizerProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brandRepository = GetIt.instance<BrandRepository>(); // Fetch BrandRepository from GetIt
+
     return Column(
       children: [
-        // Button at the top
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: CustomPaddingButton(
             onPressed: () {
-              // Ensure BrandRepository is available in the context
-              final brandRepository = context.read<BrandRepository>();
               context.push(
                 '/create_brand',
                 extra: brandRepository,

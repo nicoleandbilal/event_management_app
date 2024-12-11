@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_bloc.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_event.dart';
-import 'package:organizer_app/create_brand_new/blocs/create_brand_form_state.dart';
-import 'package:organizer_app/create_brand_new/brand_image_upload_service.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_bloc.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_event.dart';
+import 'package:organizer_app/create_brand/blocs/create_brand_form_state.dart';
+import 'package:organizer_app/create_brand/brand_image_uploader_service.dart';
 
 class CreateBrandImageUpload extends StatefulWidget {
-  final ImageUploadService imageUploadService;
+  final BrandImageUploaderService brandImageUploaderService;
   final String brandId;
 
   const CreateBrandImageUpload({
     super.key, 
-    required this.imageUploadService,
+    required this.brandImageUploaderService,
     required this.brandId,
     });
 
@@ -84,7 +84,7 @@ class CreateBrandImageUploadState extends State<CreateBrandImageUpload> {
     });
 
     try {
-      final urls = await widget.imageUploadService.uploadFullAndCroppedImages(
+      final urls = await widget.brandImageUploaderService.uploadFullAndCroppedImages(
         _fullImageFile!,
         _croppedImageFile!,
         widget.brandId,

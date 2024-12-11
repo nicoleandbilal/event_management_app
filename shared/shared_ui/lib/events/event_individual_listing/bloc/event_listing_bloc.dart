@@ -1,4 +1,4 @@
-// event_listing_bloc.dart
+// event_listing_bloc.dart - updated with separate help
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -19,13 +19,17 @@ class EventListingBloc extends Bloc<EventListingEvent, EventListingState> {
 
   Future<void> _onLoadEventListing(
       LoadEventListing event, Emitter<EventListingState> emit) async {
-    emit(EventListingLoading());  // Set loading state initially
+    emit(EventListingLoading()); // Set loading state initially
     try {
       // Fetch the event data from the repository
-      final eventData = await eventRepository.getEventDetails(event.eventId);
-      emit(EventListingLoaded(eventData));  // Emit success with the event data
+      final eventData = await eventRepository.getEvent(event.eventId);
+      if (eventData != null) {
+        emit(EventListingLoaded(eventData)); // Emit success with the event data
+      } else {
+        emit(EventListingError("Event not found")); // Handle null case
+      }
     } catch (error) {
-      emit(EventListingError(error.toString()));  // Emit error if something fails
+      emit(EventListingError(error.toString())); // Emit error if something fails
     }
   }
 }

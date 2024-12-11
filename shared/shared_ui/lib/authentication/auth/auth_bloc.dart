@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared/authentication/auth/auth_service.dart';
 import '../../../repositories/auth_repository.dart';
 import 'package:logger/logger.dart';
 
@@ -103,7 +104,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   late final StreamSubscription<User?> _authSubscription;
   final Logger _logger = Logger();
 
-  AuthBloc({required AuthRepository authRepository})
+  AuthBloc(AuthService authService, {required AuthRepository authRepository})
       : _authRepository = authRepository,
         super(AuthInitial()) {
     

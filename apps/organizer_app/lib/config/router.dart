@@ -2,12 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:organizer_app/event_creation/event_routes.dart';
+import 'package:organizer_app/config/routes/event_routes.dart';
 import 'package:organizer_app/main_and_navigation/main_navigation_bloc.dart';
 import 'package:organizer_app/main_and_navigation/navigation_routes.dart';
 import 'package:organizer_app/main_and_navigation/main_screen.dart';
 import 'package:organizer_app/profile/profile_routes.dart';
-import 'package:organizer_app/widgets/error_dialog.dart';
+import 'package:organizer_app/core/widgets/error_dialog.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/authentication/auth_routes.dart';
 

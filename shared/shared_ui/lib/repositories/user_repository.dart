@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/src/logger.dart';
 import 'package:shared/models/user_model.dart';
 
 class UserRepository {
   final FirebaseFirestore _firestore;
 
-  UserRepository({required FirebaseFirestore firestore}) : _firestore = firestore;
+  UserRepository({required FirebaseFirestore firestore, required Logger logger}) : _firestore = firestore;
 
   /// Create a new user in Firestore
   Future<void> createUser({
@@ -14,25 +15,28 @@ class UserRepository {
     required String lastName,
     String role = 'organizer', // Default role is organizer
   }) async {
-    final newUser = User(
-      userId: userId,
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      role: role,
-      brandIds: [],
-      createdAt: Timestamp.now(),
-      updatedAt: null,
-    );
+    try {
+      final newUser = User(
+        userId: userId,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        role: role,
+        brandIds: [],
+        createdAt: Timestamp.now(),
+        updatedAt: null,
+      );
 
-    await _firestore.collection('users').doc(userId).set(newUser.toJson());
+      await _firestore.collection('users').doc(userId).set(newUser.toJson());
+    } catch (e) {
+      throw Exception('Error creating user: $e');
+    }
   }
 
   /// Fetch a user by their userId from Firestore
   Future<User?> getUserById(String userId) async {
     try {
-      final DocumentSnapshot doc =
-          await _firestore.collection('users').doc(userId).get();
+      final DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
 
       if (doc.exists) {
         return User.fromDocument(doc);
@@ -40,8 +44,7 @@ class UserRepository {
         return null; // User not found
       }
     } catch (e) {
-      print('Error getting user: $e');
-      return null;
+      throw Exception('Error fetching user by ID: $e');
     }
   }
 
@@ -53,32 +56,42 @@ class UserRepository {
     String? role,
     List<String>? brandIds,
   }) async {
-    final updateData = <String, dynamic>{
-      if (firstName != null) 'firstName': firstName,
-      if (lastName != null) 'lastName': lastName,
-      if (role != null) 'role': role,
-      if (brandIds != null) 'brandIds': brandIds,
-      'updatedAt': Timestamp.now(), // Update timestamp on modification
-    };
+    try {
+      final updateData = <String, dynamic>{
+        if (firstName != null) 'firstName': firstName,
+        if (lastName != null) 'lastName': lastName,
+        if (role != null) 'role': role,
+        if (brandIds != null) 'brandIds': brandIds,
+        'updatedAt': Timestamp.now(), // Update timestamp on modification
+      };
 
-    await _firestore.collection('users').doc(userId).update(updateData);
+      await _firestore.collection('users').doc(userId).update(updateData);
+    } catch (e) {
+      throw Exception('Error updating user: $e');
+    }
   }
 
   /// Delete a user from Firestore by userId
   Future<void> deleteUser(String userId) async {
-    await _firestore.collection('users').doc(userId).delete();
+    try {
+      await _firestore.collection('users').doc(userId).delete();
+    } catch (e) {
+      throw Exception('Error deleting user: $e');
+    }
   }
 
   /// Fetch a list of users by their role (e.g., admin, organizer)
   Future<List<User>> getUsersByRole(String role) async {
-    final QuerySnapshot querySnapshot = await _firestore
-        .collection('users')
-        .where('role', isEqualTo: role)
-        .get();
+    try {
+      final QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: role)
+          .get();
 
-    return querySnapshot.docs
-        .map((doc) => User.fromDocument(doc))
-        .toList();
+      return querySnapshot.docs.map((doc) => User.fromDocument(doc)).toList();
+    } catch (e) {
+      throw Exception('Error fetching users by role: $e');
+    }
   }
 
   /// Attach a new brand to the user's brandIds array
@@ -86,12 +99,16 @@ class UserRepository {
     required String userId,
     required String brandId,
   }) async {
-    final userRef = _firestore.collection('users').doc(userId);
+    try {
+      final userRef = _firestore.collection('users').doc(userId);
 
-    await userRef.update({
-      'brandIds': FieldValue.arrayUnion([brandId]),
-      'updatedAt': Timestamp.now(),
-    });
+      await userRef.update({
+        'brandIds': FieldValue.arrayUnion([brandId]),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Error adding brand to user: $e');
+    }
   }
 
   /// Remove a brand from the user's brandIds array
@@ -99,11 +116,15 @@ class UserRepository {
     required String userId,
     required String brandId,
   }) async {
-    final userRef = _firestore.collection('users').doc(userId);
+    try {
+      final userRef = _firestore.collection('users').doc(userId);
 
-    await userRef.update({
-      'brandIds': FieldValue.arrayRemove([brandId]),
-      'updatedAt': Timestamp.now(),
-    });
+      await userRef.update({
+        'brandIds': FieldValue.arrayRemove([brandId]),
+        'updatedAt': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Error removing brand from user: $e');
+    }
   }
 }

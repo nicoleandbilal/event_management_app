@@ -7,10 +7,12 @@ import 'package:logger/logger.dart';
 
 class ImageRepository {
   final FirebaseStorage _storage;
-  final Logger _logger = Logger();
+  final Logger _logger;
 
-  ImageRepository({FirebaseStorage? storage})
-      : _storage = storage ?? FirebaseStorage.instance;
+  ImageRepository({FirebaseStorage? storage, Logger? logger})
+      : _storage = storage ?? FirebaseStorage.instance,
+        _logger = logger ?? Logger();
+
 
   /// Compresses the provided image file and returns the compressed version.
   Future<File> compressImage(File imageFile) async {

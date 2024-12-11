@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:organizer_app/event_creation/event_cover_image/event_image_upload_service.dart';
+import 'package:get_it/get_it.dart';
+import 'package:organizer_app/event_creation/basic_details/event_image_uploader/services/event_image_uploader_service.dart';
 import 'package:shared/date_and_time_picker/date_and_time_picker.dart';
-import 'package:shared/widgets/custom_input_box.dart'; // CustomInputBox for consistency
+import 'package:shared/widgets/custom_input_box.dart';
+import 'package:shared/repositories/event_repository.dart';
 
 class EditEventScreen extends StatefulWidget {
   final String eventId;
 
-  const EditEventScreen({super.key, required this.eventId, required ImageUploadService imageUploadService});
+  const EditEventScreen({super.key, required this.eventId});
 
   @override
   EditEventScreenState createState() => EditEventScreenState();
@@ -15,60 +16,57 @@ class EditEventScreen extends StatefulWidget {
 
 class EditEventScreenState extends State<EditEventScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _eventNameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _venueController = TextEditingController();
-  final TextEditingController _urlController = TextEditingController();
+  final _eventNameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _venueController = TextEditingController();
+  final _urlController = TextEditingController();
+
+  final _eventRepository = GetIt.instance<EventRepository>();
+  final _imageUploaderService = GetIt.instance<ImageUploaderService>();
 
   DateTime? _startDate;
   TimeOfDay? _startTime;
   DateTime? _endDate;
   TimeOfDay? _endTime;
   String? _selectedCategory;
-  
+
   bool _isLoading = true;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchEventData();
+    _loadEventData();
   }
 
-  // Fetch event data from Firestore
-  Future<void> _fetchEventData() async {
+  Future<void> _loadEventData() async {
     try {
-      final DocumentSnapshot eventSnapshot = await FirebaseFirestore.instance
-          .collection('events')
-          .doc(widget.eventId)
-          .get();
-
-      if (eventSnapshot.exists) {
-        final Map<String, dynamic> data = eventSnapshot.data() as Map<String, dynamic>;
+      final event = await _eventRepository.getEvent(widget.eventId);
+      if (event != null) {
         setState(() {
-          _eventNameController.text = data['eventName'] ?? '';
-          _descriptionController.text = data['description'] ?? '';
-          _venueController.text = data['venue'] ?? '';
-          _urlController.text = data['imageUrl'] ?? '';
-          _startDate = (data['startDateTime'] as Timestamp).toDate();
-          _startTime = TimeOfDay.fromDateTime((data['startDateTime'] as Timestamp).toDate());
-          _endDate = (data['endDateTime'] as Timestamp).toDate();
-          _endTime = TimeOfDay.fromDateTime((data['endDateTime'] as Timestamp).toDate());
-          _selectedCategory = data['category'] ?? '';
+          _eventNameController.text = event.eventName ?? '';
+          _descriptionController.text = event.description ?? '';
+          _venueController.text = event.venue ?? '';
+          _urlController.text = event.eventCoverImageFullUrl ?? '';
+          _startDate = event.startDateTime;
+          _startTime = TimeOfDay.fromDateTime(event.startDateTime);
+          _endDate = event.endDateTime;
+          _endTime = TimeOfDay.fromDateTime(event.endDateTime);
+          _selectedCategory = event.category;
           _isLoading = false;
         });
       } else {
-        _showError('Event not found.');
+        _showError('Event not found');
         Navigator.pop(context);
       }
     } catch (e) {
-      _showError('Error fetching event: $e');
+      _showError('Failed to load event: $e');
       Navigator.pop(context);
     }
   }
 
   Future<void> _submit() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() ?? false) {
       if (_startDate == null || _startTime == null || _endDate == null || _endTime == null) {
         _showError('Please select both start and end date/time');
         return;
@@ -76,7 +74,7 @@ class EditEventScreenState extends State<EditEventScreen> {
 
       setState(() => _isSubmitting = true);
 
-      DateTime startDateTime = DateTime(
+      final startDateTime = DateTime(
         _startDate!.year,
         _startDate!.month,
         _startDate!.day,
@@ -84,7 +82,7 @@ class EditEventScreenState extends State<EditEventScreen> {
         _startTime!.minute,
       );
 
-      DateTime endDateTime = DateTime(
+      final endDateTime = DateTime(
         _endDate!.year,
         _endDate!.month,
         _endDate!.day,
@@ -93,25 +91,27 @@ class EditEventScreenState extends State<EditEventScreen> {
       );
 
       try {
-        await FirebaseFirestore.instance.collection('events').doc(widget.eventId).update({
-          'eventName': _eventNameController.text,
-          'description': _descriptionController.text,
-          'venue': _venueController.text,
-          'imageUrl': _urlController.text,
-          'category': _selectedCategory ?? '',
-          'startDateTime': Timestamp.fromDate(startDateTime),
-          'endDateTime': Timestamp.fromDate(endDateTime),
-        });
+        await _eventRepository.updateEventFields(
+          widget.eventId,
+          {
+            'eventName': _eventNameController.text,
+            'description': _descriptionController.text,
+            'venue': _venueController.text,
+            'eventCoverImageFullUrl': _urlController.text,
+            'category': _selectedCategory ?? '',
+            'startDateTime': startDateTime,
+            'endDateTime': endDateTime,
+          },
+        );
         Navigator.pop(context, true);
       } catch (e) {
-        _showError('Error updating event: $e');
+        _showError('Failed to update event: $e');
       } finally {
         setState(() => _isSubmitting = false);
       }
     }
   }
 
-  // Utility function to show error messages
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
@@ -121,7 +121,7 @@ class EditEventScreenState extends State<EditEventScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Event')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator()) // Show loading spinner
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -130,7 +130,7 @@ class EditEventScreenState extends State<EditEventScreen> {
                   children: [
                     _buildTextInput('Event Name', _eventNameController, 'Enter event name'),
                     const SizedBox(height: 16),
-                    _buildTextInput('Description', _descriptionController, 'Enter event description'),
+                    _buildTextInput('Description', _descriptionController, 'Enter description'),
                     const SizedBox(height: 16),
                     _buildCategoryDropdown(),
                     const SizedBox(height: 16),
@@ -165,7 +165,6 @@ class EditEventScreenState extends State<EditEventScreen> {
     );
   }
 
-  // Text input builder for form fields
   Widget _buildTextInput(String label, TextEditingController controller, String hintText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +182,6 @@ class EditEventScreenState extends State<EditEventScreen> {
     );
   }
 
-  // Dropdown for selecting the category
   Widget _buildCategoryDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,13 +193,9 @@ class EditEventScreenState extends State<EditEventScreen> {
           child: DropdownButtonFormField<String>(
             value: _selectedCategory,
             items: <String>['Conference', 'Workshop', 'Meetup', 'Seminar']
-                .map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-            onChanged: (String? newValue) => setState(() => _selectedCategory = newValue),
+                .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+                .toList(),
+            onChanged: (newValue) => setState(() => _selectedCategory = newValue),
             decoration: const InputDecoration(border: InputBorder.none),
           ),
         ),

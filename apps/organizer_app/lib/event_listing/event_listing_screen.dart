@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared/events/event_individual_listing/bloc/event_listing_bloc.dart';
 import 'package:shared/models/event_model.dart';
 import 'package:shared/repositories/event_repository.dart';
@@ -14,10 +15,10 @@ class EventListingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final eventRepository = GetIt.instance<EventRepository>(); // Fetch EventRepository using GetIt
+
     return BlocProvider(
-      create: (context) => EventListingBloc(
-        RepositoryProvider.of<EventRepository>(context),
-      )..add(LoadEventListing(eventId)),
+      create: (_) => EventListingBloc(eventRepository)..add(LoadEventListing(eventId)),
       child: Scaffold(
         appBar: AppBar(title: const Text('Event Listing')),
         body: BlocBuilder<EventListingBloc, EventListingState>(

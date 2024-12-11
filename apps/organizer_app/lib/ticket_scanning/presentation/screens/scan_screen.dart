@@ -1,5 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:organizer_app/ticket_scanning/data/data_source/remote_data_source.dart';
+import 'package:organizer_app/ticket_scanning/data/repository/ticket_repository_impl.dart';
+import 'package:organizer_app/ticket_scanning/domain/use_cases/validate_ticket_use_case.dart';
 import 'package:organizer_app/ticket_scanning/presentation/bloc/ticket_scan_bloc.dart';
 import 'package:organizer_app/ticket_scanning/presentation/bloc/ticket_scan_event.dart';
 import 'package:organizer_app/ticket_scanning/presentation/bloc/ticket_scan_state.dart';
@@ -11,8 +15,14 @@ class ScanScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Create local dependencies
+    final firestore = FirebaseFirestore.instance;
+    final remoteDataSource = TicketRemoteDataSource(firestore: firestore);
+    final ticketRepository = TicketRepositoryImpl(remoteDataSource: remoteDataSource);
+    final validateTicketUseCase = ValidateTicketUseCase(ticketRepository);
+    
     return BlocProvider(
-      create: (context) => BlocProvider.of<TicketScanBloc>(context),
+      create: (_) => TicketScanBloc(validateTicketUseCase: validateTicketUseCase),
       child: BlocConsumer<TicketScanBloc, TicketScanState>(
         listener: (context, state) {
           if (state is TicketValid) {
