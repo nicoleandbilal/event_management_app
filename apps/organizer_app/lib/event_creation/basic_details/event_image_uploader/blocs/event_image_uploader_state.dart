@@ -7,33 +7,25 @@ abstract class ImageUploaderState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class ImageUploaderInitial extends ImageUploaderState {}
 
-/// State indicating image upload is in progress
 class EventImageUploading extends ImageUploaderState {}
 
-/// State when images are successfully uploaded
+// State for successful image upload
 class EventImageUploadSuccess extends ImageUploaderState {
   final String? fullImageUrl;
   final String? croppedImageUrl;
 
-  const EventImageUploadSuccess({
-    this.fullImageUrl,
-    this.croppedImageUrl,
-  });
+  const EventImageUploadSuccess(this.fullImageUrl, this.croppedImageUrl);
 
   @override
   List<Object?> get props => [fullImageUrl, croppedImageUrl];
 }
 
-/// State indicating image deletion is in progress
 class EventImageDeleting extends ImageUploaderState {}
 
-/// State when images are successfully deleted
 class EventImageDeleteSuccess extends ImageUploaderState {}
 
-/// State for errors
 class ImageUploaderError extends ImageUploaderState {
   final String errorMessage;
 

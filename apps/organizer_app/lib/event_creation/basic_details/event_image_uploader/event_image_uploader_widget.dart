@@ -1,8 +1,8 @@
 // event_image_uploader_widget.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:organizer_app/event_creation/basic_details/blocs/basic_details_bloc.dart';
 import 'package:organizer_app/event_creation/basic_details/event_image_uploader/blocs/event_image_uploader_bloc.dart';
 import 'package:organizer_app/event_creation/basic_details/event_image_uploader/blocs/event_image_uploader_event.dart';
 import 'package:organizer_app/event_creation/basic_details/event_image_uploader/blocs/event_image_uploader_state.dart';
@@ -12,16 +12,20 @@ import 'package:image_cropper/image_cropper.dart';
 class ImageUploaderWidget extends StatefulWidget {
   final String eventId;
 
-  const ImageUploaderWidget({super.key, required this.eventId});
+  const ImageUploaderWidget({
+    super.key,
+    required this.eventId,
+  });
 
   @override
-  State<ImageUploaderWidget> createState() => _ImageUploaderWidgetState();
+  ImageUploaderWidgetState createState() => ImageUploaderWidgetState();
 }
 
-class _ImageUploaderWidgetState extends State<ImageUploaderWidget> {
+class ImageUploaderWidgetState extends State<ImageUploaderWidget> {
   final ImagePicker _picker = ImagePicker();
   File? _fullImageFile;
   File? _croppedImageFile;
+  bool _isUploading = false;
 
   Future<void> _pickAndCropImage(BuildContext context) async {
     try {
@@ -32,6 +36,7 @@ class _ImageUploaderWidgetState extends State<ImageUploaderWidget> {
       );
       if (pickedFile == null) return;
 
+
       final File imageFile = File(pickedFile.path);
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
@@ -40,29 +45,46 @@ class _ImageUploaderWidgetState extends State<ImageUploaderWidget> {
         maxWidth: 1600,
         maxHeight: 900,
       );
+
       if (croppedFile != null) {
         setState(() {
           _fullImageFile = imageFile;
           _croppedImageFile = File(croppedFile.path);
         });
-
-        context.read<ImageUploaderBloc>().add(
-              UploadEventImage(
-                fullImage: _fullImageFile!,
-                croppedImage: _croppedImageFile!,
-                eventId: widget.eventId,
-              ),
-            );
+        await _uploadImages(context);
       }
     } catch (e) {
       _showError(context, 'Error selecting or cropping image: $e');
     }
   }
 
+  Future<void> _uploadImages(BuildContext context) async {
+    if (_fullImageFile == null || _croppedImageFile == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      context.read<ImageUploaderBloc>().add(
+        UploadEventImage(
+          fullImage: _fullImageFile!,
+          croppedImage: _croppedImageFile!, 
+          eventId: widget.eventId,
+        ),
+      );
+    } catch (e) {
+      _showError(context, 'Error uploading images: $e');
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+  
   void _deleteImages(BuildContext context) {
     context.read<ImageUploaderBloc>().add(DeleteEventImage(widget.eventId));
     setState(() {
-      _fullImageFile = null;
       _croppedImageFile = null;
     });
   }
@@ -82,34 +104,37 @@ class _ImageUploaderWidgetState extends State<ImageUploaderWidget> {
       );
     }
 
-    return BlocConsumer<ImageUploaderBloc, ImageUploaderState>(
-      listener: (context, state) {
-        if (state is ImageUploaderError) {
-          _showError(context, state.errorMessage);
-        }
-      },
+    return BlocBuilder<ImageUploaderBloc, ImageUploaderState>(
       builder: (context, state) {
-        if (state is EventImageUploading) {
+        if (_isUploading || state is EventImageUploading) {
           return const Center(child: CircularProgressIndicator());
         } else if (_croppedImageFile != null) {
-          return Stack(
-            children: [
-              Image.file(
-                _croppedImageFile!,
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteImages(context),
+        return Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              height: 200, // Specify height
+              color: Colors.grey[300], // Background color while loading
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8), // Optional: rounded corners
+                child: Image.file(
+                  _croppedImageFile!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover, // Ensures image covers the container
                 ),
               ),
-            ],
-          );
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _deleteImages(context),
+              ),
+            ),
+          ],
+        );
         } else {
           return GestureDetector(
             onTap: () => _pickAndCropImage(context),

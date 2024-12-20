@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logger/logger.dart';
 import 'package:get_it/get_it.dart';
-import 'package:organizer_app/create_brand/blocs/create_brand_form_bloc.dart';
-import 'package:organizer_app/event_creation/shared/blocs/event_creation_event.dart';
+import 'package:organizer_app/event_creation/basic_details/event_image_uploader/blocs/event_image_uploader_bloc.dart';
+import 'package:organizer_app/event_creation/basic_details/event_image_uploader/services/event_image_uploader_service.dart';
 import 'package:shared/authentication/login/login_bloc.dart';
 import 'package:shared/authentication/register/registration_bloc.dart';
 import 'package:shared/config/app_theme.dart';
@@ -12,9 +12,9 @@ import 'package:organizer_app/config/router.dart';
 import 'package:shared/authentication/auth/auth_bloc.dart';
 import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:shared/repositories/auth_repository.dart';
+import 'package:shared/repositories/image_repository.dart';
 import 'package:shared/repositories/user_repository.dart';
 import 'package:shared/search/bloc/search_bloc.dart';
-import 'package:organizer_app/event_creation/shared/blocs/event_creation_bloc.dart';
 import 'package:organizer_app/event_creation/basic_details/blocs/basic_details_bloc.dart';
 import 'package:organizer_app/ticket_scanning/presentation/bloc/ticket_scan_bloc.dart';
 
@@ -67,18 +67,6 @@ class EventManagementApp extends StatelessWidget {
       BlocProvider<SearchBloc>(
         create: (_) => SearchBloc(
           searchRepository: GetIt.instance(),
-        ),
-      ),
-      BlocProvider<EventCreationBloc>(
-        create: (_) => EventCreationBloc(
-          GetIt.instance(),
-          eventCreationService: GetIt.instance(),
-        )..add(InitializeEventCreation(userId)),
-      ),
-      BlocProvider<BasicDetailsBloc>(
-        create: (_) => BasicDetailsBloc(
-          service: GetIt.instance(),
-          logger: GetIt.instance<Logger>(),
         ),
       ),
       BlocProvider<TicketScanBloc>(

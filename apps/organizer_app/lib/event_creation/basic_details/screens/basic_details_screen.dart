@@ -6,7 +6,6 @@ import 'package:organizer_app/event_creation/basic_details/blocs/basic_details_s
 import 'package:organizer_app/event_creation/basic_details/event_image_uploader/event_image_uploader_widget.dart';
 import 'package:organizer_app/event_creation/basic_details/models/basic_details_model.dart';
 import 'package:shared/date_and_time_picker/date_and_time_picker.dart';
-
 class BasicDetailsScreen extends StatelessWidget {
   final String eventId;
 
@@ -14,6 +13,10 @@ class BasicDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    // Dispatching the event here:
+    context.read<BasicDetailsBloc>().add(FetchBasicDetails(eventId));
+
     return BlocBuilder<BasicDetailsBloc, BasicDetailsState>(
       builder: (context, state) {
         if (state is BasicDetailsLoading) {
@@ -38,7 +41,7 @@ class _BasicDetailsForm extends StatefulWidget {
   final String eventId;
   final BasicDetailsModel basicDetails;
 
-  const _BasicDetailsForm({super.key, required this.eventId, required this.basicDetails});
+  const _BasicDetailsForm({required this.eventId, required this.basicDetails});
 
   @override
   State<_BasicDetailsForm> createState() => _BasicDetailsFormState();
@@ -104,18 +107,20 @@ void _onSave() {
   }
 }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image Upload
-            ImageUploaderWidget(eventId: widget.eventId),
-            const SizedBox(height: 20),
+    return Material(
+      color: Colors.transparent, // or any background color you prefer
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image Upload
+              ImageUploaderWidget(eventId: widget.eventId),
+              const SizedBox(height: 20),
 
             // Event Name
             TextFormField(
@@ -186,26 +191,12 @@ void _onSave() {
             ),
             const SizedBox(height: 32),
 
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _onSave,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            ),
-          ],
+
+            ],
+          ),
         ),
       ),
     );
   }
 }
+

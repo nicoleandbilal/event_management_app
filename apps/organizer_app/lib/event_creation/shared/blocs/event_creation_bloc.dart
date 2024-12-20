@@ -11,7 +11,7 @@ class EventCreationBloc extends Bloc<EventCreationEvent, EventCreationState> {
   Event? _currentEvent;
   int _currentPageIndex = 0;
 
-  EventCreationBloc(this._service, {required EventCreationService eventCreationService}) : super(EventCreationInitial()) {
+  EventCreationBloc(this._service) : super(EventCreationInitial()) {
     on<InitializeEventCreation>(_onInitializeEventCreation);
     on<NavigateNext>(_onNavigateNext);
     on<NavigateBack>(_onNavigateBack);

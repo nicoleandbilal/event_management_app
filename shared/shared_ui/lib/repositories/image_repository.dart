@@ -1,5 +1,3 @@
-// image_repository.dart
-
 import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -13,8 +11,6 @@ class ImageRepository {
       : _storage = storage ?? FirebaseStorage.instance,
         _logger = logger ?? Logger();
 
-
-  /// Compresses the provided image file and returns the compressed version.
   Future<File> compressImage(File imageFile) async {
     try {
       final compressedXFile = await FlutterImageCompress.compressAndGetFile(
@@ -29,7 +25,6 @@ class ImageRepository {
     }
   }
 
-  /// Uploads an image to Firebase Storage and returns the download URL.
   Future<String> uploadImage(File imageFile, String path) async {
     try {
       final ref = _storage.ref().child(path);
@@ -41,7 +36,6 @@ class ImageRepository {
     }
   }
 
-  /// Deletes all cover images associated with an event by event ID.
   Future<void> deleteEventCoverImages(String eventId) async {
     try {
       final eventFolder = 'events/$eventId/event_cover_image/';

@@ -1,33 +1,45 @@
 // event_creation_modal.dart - updated
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
+import 'package:organizer_app/event_creation/basic_details/blocs/basic_details_bloc.dart';
+import 'package:organizer_app/event_creation/basic_details/event_image_uploader/blocs/event_image_uploader_bloc.dart';
+import 'package:organizer_app/event_creation/basic_details/event_image_uploader/services/event_image_uploader_service.dart';
 import 'package:organizer_app/event_creation/basic_details/screens/basic_details_screen.dart';
+import 'package:organizer_app/event_creation/basic_details/services/basic_details_service.dart';
+import 'package:organizer_app/event_creation/finishing_details/blocs/finishing_details_bloc.dart';
 import 'package:organizer_app/event_creation/finishing_details/screen/finishing_details_screen.dart';
+import 'package:organizer_app/event_creation/finishing_details/services/finishing_details_service.dart';
 import 'package:organizer_app/event_creation/shared/blocs/event_creation_bloc.dart';
 import 'package:organizer_app/event_creation/shared/blocs/event_creation_event.dart';
 import 'package:organizer_app/event_creation/shared/blocs/event_creation_state.dart';
 import 'package:organizer_app/event_creation/shared/screens/event_creation_navigation_bar.dart';
 import 'package:organizer_app/event_creation/shared/screens/top_bar.dart';
 import 'package:organizer_app/event_creation/shared/services/event_creation_service.dart';
+import 'package:organizer_app/event_creation/ticket_details/blocs/ticket_details_bloc.dart';
 import 'package:organizer_app/event_creation/ticket_details/screens/ticket_details_screen.dart';
+import 'package:organizer_app/event_creation/ticket_details/services/ticket_details_service.dart';
 import 'package:organizer_app/events_page/screens/event_list_screen.dart';
 import 'package:shared/widgets/draggable_modal_layout.dart';
 
+final getIt = GetIt.instance;
+
 class EventCreationModal extends StatelessWidget {
   final String createdByUserId;
+  final String brandId;
 
-  const EventCreationModal(
-    {super.key, 
-    required this.createdByUserId
-    });
+  const EventCreationModal({
+    super.key,
+    required this.createdByUserId,
+    required this.brandId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => EventCreationBloc(
-        RepositoryProvider.of(context), 
-        eventCreationService: context.read<EventCreationService>(), // Ensure the service is provided here
+        getIt<EventCreationService>(),
       )..add(InitializeEventCreation(createdByUserId)),
       child: const _EventCreationModalBody(),
     );
@@ -35,11 +47,10 @@ class EventCreationModal extends StatelessWidget {
 }
 
 class _EventCreationModalBody extends StatefulWidget {
-  const _EventCreationModalBody({super.key});
+  const _EventCreationModalBody();
 
   @override
-  State<_EventCreationModalBody> createState() =>
-      _EventCreationModalBodyState();
+  State<_EventCreationModalBody> createState() => _EventCreationModalBodyState();
 }
 
 class _EventCreationModalBodyState extends State<_EventCreationModalBody> {
@@ -54,59 +65,95 @@ class _EventCreationModalBodyState extends State<_EventCreationModalBody> {
         }
 
         if (state is EventCreationError) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Error loading event creation',
-                  style: TextStyle(fontSize: 18, color: Colors.red),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () => context
-                      .read<EventCreationBloc>()
-                      .add(InitializeEventCreation('')),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
+          return _buildErrorState(context, state.message);
         }
 
         if (state is EventCreationReady) {
-          return DraggableModalLayout(
-            backgroundChild: const EventListScreen(),
-            modalChild: Column(
-              children: [
-                TopBar(onSaveAndExit: () {
-                  context.read<EventCreationBloc>().add(SaveAndExit());
-                  Navigator.pop(context);
-                }),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      if (state is EventCreationReady)
-                        BasicDetailsScreen(eventId: state.event.eventId),
-                      TicketDetailsScreen(eventId: state.event.eventId),
-                      FinishingDetailsScreen(eventId: state.event.eventId),
-                    ],
-                  ),
-                ),
-                EventCreationNavigationBar(pageController: _pageController),
-              ],
-            ),
-          );
+          return _buildEventCreationContent(context, state.event.eventId);
         }
 
         return Container();
       },
     );
   }
-}
 
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            style: const TextStyle(fontSize: 18, color: Colors.red),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () =>
+                context.read<EventCreationBloc>().add(InitializeEventCreation('')),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventCreationContent(BuildContext context, String eventId) {
+    return MultiBlocProvider(
+      providers: [
+      BlocProvider(
+        create: (context) => ImageUploaderBloc(
+          imageUploaderService: getIt<ImageUploaderService>(),
+          eventId: eventId,
+        ),
+      ),
+        BlocProvider(
+          create: (context) => BasicDetailsBloc(
+            service: getIt<BasicDetailsService>(),
+            logger: getIt<Logger>(),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => TicketDetailsBloc(
+            ticketDetailsService: getIt<TicketDetailsService>(),
+            logger: getIt<Logger>(),
+            eventId: eventId,
+          ),
+        ),
+        BlocProvider(
+          create: (context) => FinishingDetailsBloc(
+            service: getIt<FinishingDetailsService>(),
+            logger: getIt<Logger>(),
+          ),
+        ),
+      ],
+      child: DraggableModalLayout(
+        backgroundChild: const EventListScreen(),
+        modalChild: Column(
+          children: [
+            TopBar(onSaveAndExit: _onSaveAndExit),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  BasicDetailsScreen(eventId: eventId),
+                  TicketDetailsScreen(eventId: eventId),
+                  FinishingDetailsScreen(eventId: eventId),
+                ],
+              ),
+            ),
+            EventCreationNavigationBar(pageController: _pageController),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onSaveAndExit() {
+    context.read<EventCreationBloc>().add(SaveAndExit());
+    Navigator.pop(context);
+  }
+}
 
 /*
 

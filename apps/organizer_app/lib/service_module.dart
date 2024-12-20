@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:organizer_app/create_brand/brand_image_uploader_service.dart';
+import 'package:organizer_app/event_creation/basic_details/services/basic_details_service.dart';
 import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:organizer_app/event_creation/shared/services/event_creation_service.dart';
 import 'package:organizer_app/event_creation/ticket_details/services/ticket_details_service.dart';
@@ -26,9 +27,7 @@ void registerServices() {
     ),
   );
 
-  getIt.registerSingleton<ImageUploaderService>(
-    ImageUploaderService(getIt<ImageRepository>()),
-  );
+
 
   getIt.registerSingleton<BrandImageUploaderService>(
     BrandImageUploaderService(getIt<ImageRepository>()),
@@ -36,8 +35,21 @@ void registerServices() {
 
   getIt.registerSingleton<EventCreationService>(
     EventCreationService(
-      getIt<EventRepository>(),
-      eventRepository: getIt<EventRepository>(), // Pass the required parameter
+      getIt<EventRepository>(), // Inject only the required dependency
+    ),
+  );
+
+  getIt.registerSingleton<ImageUploaderService>(
+    ImageUploaderService(
+      getIt<ImageRepository>(), // Ensure ImageRepository is provided
+      logger,
+    ),
+  );
+
+  getIt.registerSingleton<BasicDetailsService>(
+    BasicDetailsService(
+      eventRepository: getIt<EventRepository>(), // Ensure eventRepository is provided
+      logger: logger,
     ),
   );
 

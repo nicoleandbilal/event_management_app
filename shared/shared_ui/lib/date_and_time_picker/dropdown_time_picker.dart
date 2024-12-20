@@ -18,25 +18,26 @@ class CustomDropdownTimePicker extends StatefulWidget {
 }
 
 class _CustomDropdownTimePickerState extends State<CustomDropdownTimePicker> {
-  int? _selectedHour;
-  int? _selectedMinute;
+  int _selectedHour = 0;
+  int _selectedMinute = 0;
 
   @override
   void initState() {
     super.initState();
     if (widget.time != null) {
-      _selectedHour = widget.time!.hour;
-      _selectedMinute = widget.time!.minute;
+      _selectedHour = widget.time!.hour.clamp(0, 23); // Ensure valid range
+      _selectedMinute = widget.time!.minute - widget.time!.minute % 5; // Snap to nearest 5
     }
   }
 
   List<DropdownMenuItem<int>> _buildDropdownItems(int range, {int step = 1}) {
-    return List.generate((range / step).round(), (index) {
-      final value = (index * step).toString().padLeft(2, '0'); // Format as "00"
+    return List.generate((range / step).ceil(), (index) {
+      final value = (index * step);
+      final formattedValue = value.toString().padLeft(2, '0'); // Format as "00"
       return DropdownMenuItem<int>(
-        value: index * step,
+        value: value,
         child: Text(
-          value,
+          formattedValue,
           style: GoogleFonts.raleway(
             textStyle: const TextStyle(
               fontSize: 16,
@@ -49,10 +50,8 @@ class _CustomDropdownTimePickerState extends State<CustomDropdownTimePicker> {
   }
 
   void _onTimeChanged() {
-    if (_selectedHour != null && _selectedMinute != null) {
-      final pickedTime = TimeOfDay(hour: _selectedHour!, minute: _selectedMinute!);
-      widget.onTimePicked(pickedTime);
-    }
+    final pickedTime = TimeOfDay(hour: _selectedHour, minute: _selectedMinute);
+    widget.onTimePicked(pickedTime);
   }
 
   @override
@@ -60,22 +59,22 @@ class _CustomDropdownTimePickerState extends State<CustomDropdownTimePicker> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Hour dropdown inside its own CustomInputBox
+        // Hour dropdown
         Expanded(
           child: CustomInputBox(
             height: 50,
             child: DropdownButton<int>(
               value: _selectedHour,
               hint: const Text('00'),
-              items: _buildDropdownItems(24), // Hours range
+              items: _buildDropdownItems(24), // Hours: 0 - 23
               onChanged: (value) {
                 setState(() {
-                  _selectedHour = value!;
+                  _selectedHour = value ?? 0;
                 });
                 _onTimeChanged();
               },
-              underline: const SizedBox.shrink(), // Remove underline
-              isExpanded: true, // Ensures the dropdown takes the whole space
+              underline: const SizedBox.shrink(),
+              isExpanded: true,
             ),
           ),
         ),
@@ -84,22 +83,22 @@ class _CustomDropdownTimePickerState extends State<CustomDropdownTimePicker> {
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(':'),
         ),
-        // Minute dropdown inside its own CustomInputBox with 5-minute increments
+        // Minute dropdown with 5-minute steps
         Expanded(
           child: CustomInputBox(
             height: 50,
             child: DropdownButton<int>(
               value: _selectedMinute,
               hint: const Text('00'),
-              items: _buildDropdownItems(60, step: 5), // Minutes in 5-minute steps
+              items: _buildDropdownItems(60, step: 5), // Minutes: 0, 5, 10, ..., 55
               onChanged: (value) {
                 setState(() {
-                  _selectedMinute = value!;
+                  _selectedMinute = value ?? 0;
                 });
                 _onTimeChanged();
               },
-              underline: const SizedBox.shrink(), // Remove underline
-              isExpanded: true, // Ensures the dropdown takes the whole space
+              underline: const SizedBox.shrink(),
+              isExpanded: true,
             ),
           ),
         ),

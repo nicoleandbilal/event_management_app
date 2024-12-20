@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:organizer_app/events_page/blocs/event_filter_bloc.dart';
-import 'package:organizer_app/events_page/choose_brand/blocs/choose_brand_dropdown_bloc.dart';
 import 'package:organizer_app/events_page/choose_brand/widgets/choose_brand_dropdown.dart';
 import 'package:organizer_app/events_page/widgets/organizer_event_list.dart';
 import 'package:shared/repositories/event_repository.dart';
@@ -12,7 +11,7 @@ import 'package:shared/authentication/auth/auth_service.dart';
 import 'package:shared/widgets/custom_padding_button.dart';
 
 class EventListScreen extends StatefulWidget {
-  const EventListScreen({super.key});
+ const EventListScreen({super.key});
 
   @override
   EventListScreenState createState() => EventListScreenState();
