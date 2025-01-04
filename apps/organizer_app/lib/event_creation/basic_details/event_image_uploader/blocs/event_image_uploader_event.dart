@@ -1,5 +1,3 @@
-// event_image_uploader_event.dart
-
 import 'dart:io';
 import 'package:equatable/equatable.dart';
 
@@ -10,26 +8,14 @@ abstract class ImageUploaderEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class UploadEventImage extends ImageUploaderEvent {
+class ImagesSelected extends ImageUploaderEvent {
   final File fullImage;
   final File croppedImage;
-  final String eventId;
 
-  const UploadEventImage({
-    required this.fullImage,
-    required this.croppedImage,
-    required this.eventId,
-  });
+  const ImagesSelected(this.fullImage, this.croppedImage);
 
   @override
-  List<Object?> get props => [fullImage, croppedImage, eventId];
+  List<Object?> get props => [fullImage, croppedImage];
 }
 
-class DeleteEventImage extends ImageUploaderEvent {
-  final String eventId;
-
-  const DeleteEventImage(this.eventId);
-
-  @override
-  List<Object?> get props => [eventId];
-}
+class ImagesDeleted extends ImageUploaderEvent {}

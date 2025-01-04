@@ -22,7 +22,7 @@ class EditEventScreenState extends State<EditEventScreen> {
   final _urlController = TextEditingController();
 
   final _eventRepository = GetIt.instance<EventRepository>();
-  final _imageUploaderService = GetIt.instance<ImageUploaderService>();
+  final _imageUploaderService = GetIt.instance<ImageUploadService>();
 
   DateTime? _startDate;
   TimeOfDay? _startTime;

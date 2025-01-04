@@ -1,4 +1,5 @@
 // event_creation_modal.dart - updated
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -102,8 +103,8 @@ class _EventCreationModalBodyState extends State<_EventCreationModalBody> {
       providers: [
       BlocProvider(
         create: (context) => ImageUploaderBloc(
-          imageUploaderService: getIt<ImageUploaderService>(),
-          eventId: eventId,
+          getIt<ImageUploadService>(),
+          eventId,
         ),
       ),
         BlocProvider(

@@ -39,8 +39,8 @@ void registerServices() {
     ),
   );
 
-  getIt.registerSingleton<ImageUploaderService>(
-    ImageUploaderService(
+  getIt.registerSingleton<ImageUploadService>(
+    ImageUploadService(
       getIt<ImageRepository>(), // Ensure ImageRepository is provided
       logger,
     ),
@@ -50,6 +50,7 @@ void registerServices() {
     BasicDetailsService(
       eventRepository: getIt<EventRepository>(), // Ensure eventRepository is provided
       logger: logger,
+      imageUploadService: getIt<ImageUploadService>(), // Add the required parameter
     ),
   );
 

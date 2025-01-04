@@ -119,7 +119,7 @@ void _onSave() {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image Upload
-              ImageUploaderWidget(eventId: widget.eventId),
+              const ImageUploaderWidget(),
               const SizedBox(height: 20),
 
             // Event Name
